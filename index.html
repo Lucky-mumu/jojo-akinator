@@ -178,6 +178,7 @@
 <div id="rP" class="rp"></div>
 <div id="rD" class="rd"></div>
 <div id="qcB" class="qc-badge"></div>
+<div id="pcB" style="text-align:center;font-size:.72em;color:#aaa;margin:3px 0"></div>
 <div class="cw"><span style="font-size: .73em; color: #888;">確信度</span>
 <div class="co">
 <div id="cB" class="cb"></div>
@@ -215,7 +216,7 @@
 <div style="text-align: center; margin-bottom: 5px; font-size: .84em; color: #ccc;">リクエスト</div>
 <div class="tb">
 <div class="t a rqt" data-s="char">🧑 キャラ</div>
-<div class="t rqt" data-s="qst">❓ 質問</div>
+<div class="t rqt" data-s="other">📝 要望・報告</div>
 </div>
 <div id="rqChar" class="rqS">
 <div style="text-align: center; font-size: .68em; color: #666; margin-bottom: 8px;">管理者が確認して追加します</div>
@@ -244,11 +245,12 @@
 <div id="rLs"></div>
 </div>
 </div>
-<div id="rqQst" class="rqS H">
-<div style="text-align: center; font-size: .68em; color: #666; margin-bottom: 8px;">「こんな質問があるとキャラを当てやすくなる」というアイデアを送れます</div>
-<label>質問のアイデア *</label><input id="rqQi" type="text" placeholder="例: そのキャラはイタリア人ですか？" /> <label>補足（任意）</label><textarea id="rqQn" placeholder="理由など"></textarea>
-<div style="text-align: center; margin-top: 8px;"><button id="rqQsb" class="bt">送信 📩</button></div>
-<div id="rqQms" style="text-align: center; margin-top: 5px; font-size: .8em; min-height: 1.1em;"></div>
+<div id="rqOther" class="rqS H">
+<div style="text-align: center; font-size: .68em; color: #666; margin-bottom: 8px;">バグ・間違い報告や質問アイデアを送れます</div>
+<label>カテゴリ</label><select id="rqOcat"><option value="質問のアイデア">💡 質問のアイデア</option><option value="情報の間違い報告">⚠️ 情報の間違い報告</option><option value="バグ報告">🐛 バグ報告</option><option value="その他要望">📝 その他要望</option></select>
+<label>内容 *</label><textarea id="rqOtxt" placeholder="詳しく教えてください"></textarea>
+<div style="text-align: center; margin-top: 8px;"><button id="rqOsb" class="bt">送信 📩</button></div>
+<div id="rqOms" style="text-align: center; margin-top: 5px; font-size: .8em; min-height: 1.1em;"></div>
 <details>
 <summary>📋 現在ある質問一覧を確認する</summary>
 <input id="rqExSr" class="sr" style="margin-top: 5px;" type="text" placeholder="🔍 質問を検索..." />
@@ -382,6 +384,7 @@
 <div class="t amt" data-s="reqs">📩 リクエスト</div>
 <div class="t amt" data-s="chars">📋 一覧</div>
 <div class="t amt" data-s="qs">❓ 質問</div>
+<div class="t amt" data-s="train">🎮 トレーニング</div>
 </div>
 <div id="aAdd" class="aS">
 <div class="adm-s">
@@ -507,6 +510,35 @@
 <div id="qMs" style="text-align: center; margin-top: 5px; font-size: .78em; min-height: 1em;"></div>
 </div>
 </div>
+<div id="aTrain" class="aS H">
+<div class="adm-s"><div class="adm-t">🎮 トレーニングモード</div>
+<div style="font-size:.7em;color:#aaa;margin-bottom:8px">通常と同じように遊んで、最後にキャラの属性として回答を保存できます</div>
+<div style="text-align:center"><button id="tGo" class="bt bg">▶ 開始する</button></div></div>
+<div id="tQ" class="H adm-s">
+<div class="pg"><div id="tBar" class="pb"></div></div>
+<div id="tQn" class="qn"></div>
+<div id="top3t" class="ch" style="margin-bottom:4px"></div>
+<div id="tQq" class="qq"></div>
+<div id="tAg" class="ag"><div class="ar"><div class="an" data-v="yes">⭕ はい</div><div class="an" data-v="py">🔵 たぶんYes</div></div>
+<div class="ar"><div class="an" data-v="uk">❓ わからない</div></div>
+<div class="ar"><div class="an" data-v="pn">🟠 たぶんNo</div><div class="an" data-v="no">❌ いいえ</div></div></div>
+<div class="bk"><button id="tBk" class="bkb" disabled>⬅ 戻る</button></div>
+</div>
+<div id="tR" class="H adm-s">
+<div class="adm-t">推測結果</div>
+<div id="tRE" class="re" style="text-align:center;font-size:2em"></div>
+<div id="tRN" class="rn" style="text-align:center"></div>
+<div style="text-align:center;margin:8px 0;display:flex;gap:8px;justify-content:center">
+<button id="tHit" class="bt bg bs">✅ 当たり</button>
+<button id="tMiss" class="bt bs">❌ ハズレ</button>
+</div>
+<div id="tSrW" class="H"><div style="font-size:.76em;color:#ccc;margin-bottom:4px">正しいキャラを選択してください</div>
+<input id="tSr" class="sr" type="text" placeholder="🔍 検索..." />
+<div id="tSl" class="srl"></div>
+</div>
+<div id="tMs" style="text-align:center;margin-top:5px;font-size:.8em;min-height:1.1em"></div>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -574,6 +606,7 @@ $("bk").onclick=()=>{if(!G.sn.length)return;const s=G.sn.pop();G.pr=s.pr;G.ak=s.
 function dGu(){show("pT");setTimeout(()=>{const t=gT(7),g=t[0];$("rE").textContent=g.emoji;$("rN").textContent=g.name;$("rP").textContent=PN[g.part]||"";$("rD").textContent=g.desc;const pct=Math.min(99,Math.round(g.prob*100));$("cP").textContent=pct+"%";const bar=$("cB");bar.style.width="0%";bar.style.background=pct>70?"linear-gradient(90deg,#5efc8d,#20e8a0)":pct>40?"linear-gradient(90deg,#f7d94e,#e8a020)":"linear-gradient(90deg,#fc5e5e,#e84020)";setTimeout(()=>{bar.style.width=pct+"%"},100);
 const df=G.qc<=8?"easy":G.qc<=15?"med":"hard";const dfl=G.qc<=8?"余裕":G.qc<=15?"普通":"苦戦";
 $("qcB").innerHTML=`${G.qc}問でたどり着きました！ <span class="diff-badge diff-${df}">${dfl}</span>`;
+$("pcB").textContent="";(async()=>{if(!gStCache){const d=await sRpc("get_global_stats");if(d)gStCache=d}if(gStCache){const p=(gStCache.popular||[]).find(x=>x.name===g.name);if(p)$("pcB").textContent=`🎮 このキャラは ${p.count}回 プレイされました`}})();
 $("wL").innerHTML=t.slice(1,6).map(c=>`<div class="fb" data-n="${c.name}">${c.emoji} ${c.name}</div>`).join("");$("fA").style.display="block";["wA","wSA","wNA"].forEach(x=>$(x).classList.add("H"));$("fM").textContent="";G.gn=g.name;show("pR")},1400)}
 function isSpam(hist){if(hist.length<5)return false;const c={};hist.forEach(h=>{c[h.v]=(c[h.v]||0)+1});const mx=Math.max(...Object.values(c));return mx/hist.length>=0.8}
 function canLearn(nm){const lt=LS("learntime")||{};const arr=lt[nm]||[];const day=Date.now()-24*60*60*1000;const recent=arr.filter(t=>t>day);return recent.length<3}
@@ -592,13 +625,13 @@ $("wSb").onclick=async()=>{const nm=$("wI").value.trim();if(!nm)return;const r=a
 $("ag").onclick=()=>{nG();show("pQ");sQ()};
 
 /* リクエスト */
-$a(".rqt").forEach(t=>t.onclick=()=>{$a(".rqt").forEach(x=>x.classList.remove("a"));t.classList.add("a");$a(".rqS").forEach(x=>x.classList.add("H"));$({char:"rqChar",qst:"rqQst"}[t.dataset.s]).classList.remove("H");if(t.dataset.s==="qst")showExQ()});
+$a(".rqt").forEach(t=>t.onclick=()=>{$a(".rqt").forEach(x=>x.classList.remove("a"));t.classList.add("a");$a(".rqS").forEach(x=>x.classList.add("H"));$({char:"rqChar",other:"rqOther"}[t.dataset.s]).classList.remove("H");if(t.dataset.s==="other")showExQ()});
 $("rNm").oninput=()=>{const nm=$("rNm").value.trim();const s=findSim(nm);const p=findPendingSim(nm);let msg=[];if(s.length)msg.push("登録済み: "+s.map(c=>c.name).join(", "));if(p.length)msg.push("リクエスト済み: "+p.map(r=>r.char_name).join(", "));if(msg.length){$("rDup").classList.remove("H");$("rDup").textContent="⚠️ "+msg.join(" / ");$("rSb").disabled=!!CH.find(c=>c.name===nm)}else{$("rDup").classList.add("H");$("rSb").disabled=false}};
 $("rSb").onclick=async()=>{const nm=$("rNm").value.trim();if(!nm){$("rMs").innerHTML='<span style="color:#fc5e5e">名前を入力してください</span>';return}const r=await sRpc("submit_char_request",{p_name:nm,p_part:parseInt($("rPt").value)||0,p_note:$("rNo").value.trim()});if(r==="EXISTS"){$("rMs").innerHTML='<span style="color:#fc5e5e">そのキャラは登録済みです</span>'}else if(r==="VOTED"){$("rMs").innerHTML='<span style="color:#5efc8d">🗳️ 既にリクエストされています。投票しました！</span>';$("rNm").value="";$("rPt").value="";$("rNo").value="";$("rDup").classList.add("H")}else{rq.push({name:nm,date:new Date().toISOString(),status:"pending"});SS("reqs",rq);$("rNm").value="";$("rPt").value="";$("rNo").value="";$("rMs").innerHTML='<span style="color:#5efc8d">📩 リクエストを送信しました！</span>';$("rDup").classList.add("H");rR()}};
 async function rR(){const el=$("rLs");if(!rq.length){el.innerHTML='<div style="text-align:center;font-size:.7em;color:#666;padding:6px">まだありません</div>';return}
   const active=CH.map(c=>c.name);rq.forEach(r=>{if(active.includes(r.name))r.status="approved"});SS("reqs",rq);
   el.innerHTML=[...rq].reverse().slice(0,15).map(r=>`<div class="ri"><span>${r.name}</span><span class="rbg ${r.status==="approved"?"rap":"rpd"}">${r.status==="approved"?"✅ 追加済み":"⏳ 審査中"}</span></div>`).join("")}
-$("rqQsb").onclick=()=>{const q=$("rqQi").value.trim();if(!q){$("rqQms").innerHTML='<span style="color:#fc5e5e">質  を入力してください</span>';return}sP("question_requests",[{question_text:q,note:$("rqQn").value.trim()}]);$("rqQi").value="";$("rqQn").value="";$("rqQms").innerHTML='<span style="color:#5efc8d">📩 質問アイデアを送信しました！</span>'};
+$("rqOsb").onclick=async()=>{const txt=$("rqOtxt").value.trim();if(!txt){$("rqOms").innerHTML='<span style="color:#fc5e5e">内容を入力してください</span>';return}const cat=$("rqOcat").value;await sRpc("submit_char_request",{p_name:"【"+cat+"】",p_part:0,p_note:txt});$("rqOtxt").value="";$("rqOms").innerHTML='<span style="color:#5efc8d">📩 送信しました！</span>'};
 function showExQ(){$("rqExQ").innerHTML=AT.map(a=>`<div class="eq-item">${a.l} — ${a.q}</div>`).join("");$("rqExSr").value="";$("rqExSr").oninput=()=>{const q=$("rqExSr").value.trim().toLowerCase();$("rqExQ").querySelectorAll(".eq-item").forEach(r=>{r.style.display=(!q||r.textContent.toLowerCase().includes(q))?"":"none"})}}
 
 /* 育てる */
@@ -656,7 +689,7 @@ function renderGSt(d){
 
 /* ===== 管理 ===== */
 $("aGo").onclick=async()=>{const h=await sha($("aPw").value);const r=await sRpc("admin_verify",{p_pass_hash:h});if(r==="OK"){admH=h;admOK=true;$("aL").classList.add("H");$("aP").classList.remove("H");initAdmAdd()}else{$("aEr").textContent="パスワードが違います"}};
-$a(".amt").forEach(t=>t.onclick=()=>{$a(".amt").forEach(x=>x.classList.remove("a"));t.classList.add("a");$a(".aS").forEach(x=>x.classList.add("H"));({add:()=>{$("aAdd").classList.remove("H");initAdmAdd()},reqs:()=>{$("aReqs").classList.remove("H");loadReqs()},chars:()=>{$("aChars").classList.remove("H");loadChars()},qs:()=>{$("aQs").classList.remove("H");loadQs()}})[t.dataset.s]()});
+$a(".amt").forEach(t=>t.onclick=()=>{$a(".amt").forEach(x=>x.classList.remove("a"));t.classList.add("a");$a(".aS").forEach(x=>x.classList.add("H"));({add:()=>{$("aAdd").classList.remove("H");initAdmAdd()},reqs:()=>{$("aReqs").classList.remove("H");loadReqs()},chars:()=>{$("aChars").classList.remove("H");loadChars()},qs:()=>{$("aQs").classList.remove("H");loadQs()},train:()=>$("aTrain").classList.remove("H")})[t.dataset.s]()});
 
 /* 管理：追加 */
 let AD={qs:[],qi:0,ans:{},sn:[]};
@@ -754,6 +787,19 @@ $("qEdSv").onclick=async()=>{const k=$("qEdit").dataset.k,q=$("qEdQ").value.trim
 $("qEdCl").onclick=()=>$("qEdit").classList.add("H");
 $("qKey").oninput=()=>{AT.find(a=>a.k===$("qKey").value.trim())?($("qDup").classList.remove("H"),$("qDup").textContent="⚠️ このキーは既に存在します"):$("qDup").classList.add("H")};
 $("qSb").onclick=async()=>{const k=$("qKey").value.trim(),q=$("qQ").value.trim(),l=$("qLb").value.trim(),iv=parseFloat($("qInfo").value);if(!k||!q||!l){$("qMs").innerHTML='<span style="color:#fc5e5e">全項目入力してください</span>';return}if(!/^[a-zA-Z0-9_]+$/.test(k)){$("qMs").innerHTML='<span style="color:#fc5e5e">キーは英数字とアンダースコアのみです</span>';return}if(AT.find(a=>a.k===k)){$("qMs").innerHTML='<span style="color:#fc5e5e">このキーは既に存在します</span>';return}if(isNaN(iv)||iv<0.1||iv>3){$("qMs").innerHTML='<span style="color:#fc5e5e">重要度は0.1〜3.0で入力</span>';return}const r=await sRpc("admin_add_attr",{p_pass_hash:admH,p_key:k,p_question:q,p_label:l,p_info:iv});if(r==="OK"){$("qMs").innerHTML=`<span style="color:#5efc8d">✅「${l}」を追加しました！</span>`;AT.push({k,q,l,i:iv});$("qKey").value="";$("qQ").value="";$("qLb").value="";$("qInfo").value="1.5";loadQs()}else $("qMs").innerHTML=`<span style="color:#fc5e5e">${r||"エラー"}</span>`};
+
+/* 管理：トレーニング */
+let TG={};
+$("tGo").onclick=()=>{if(!CH.length||!AT.length)return;TG={pr:CH.map(c=>({n:c.name,p:1/CH.length})),ak:new Set(),qc:0,h:[],sn:[],cq:null,gn:"",guessed:new Set(),extra:false,maxQ:MQ};$("tQ").classList.remove("H");$("tR").classList.add("H");$("tMs").textContent="";tSQ()};
+function tSQ(){const _=G;G=TG;const q=pQ();if(!q||TG.qc>=TG.maxQ){G=_;tDGu();return}TG.cq=q;const t3=gT(3);G=_;$("tQn").textContent=`${TG.qc+1}/${TG.maxQ}`;$("tBar").style.width=(TG.qc/TG.maxQ*100)+"%";$("tQq").textContent=q.q;$("top3t").innerHTML=t3.map((c,i)=>`<div class="ci${i?"":" tp"}">${c.emoji} ${c.name} ${(c.prob*100).toFixed(0)}%</div>`).join("");$("tBk").disabled=!TG.sn.length}
+$("tAg").onclick=e=>{const b=e.target.closest(".an");if(!b)return;const v=b.dataset.v,q=TG.cq;TG.sn.push({pr:TG.pr.map(p=>({...p})),ak:new Set(TG.ak),qc:TG.qc,h:[...TG.h]});TG.ak.add(q.k);TG.qc++;TG.h.push({a:q.k,v});const _=G;G=TG;bU(q.k,v);const dg=sGu();G=_;dg?tDGu():tSQ()};
+$("tBk").onclick=()=>{if(!TG.sn.length)return;const s=TG.sn.pop();TG.pr=s.pr;TG.ak=s.ak;TG.qc=s.qc;TG.h=s.h;tSQ()};
+function tDGu(){$("tQ").classList.add("H");$("tR").classList.remove("H");const _=G;G=TG;const t=gT(7);G=_;const g=t[0];TG.gn=g.name;$("tRE").textContent=g.emoji;$("tRN").textContent=g.name;$("tSrW").classList.add("H");$("tMs").textContent=""}
+function tSave(nm){const attrs={};TG.h.forEach(h=>{if(h.v==="uk")return;attrs[h.a]=({yes:1,py:.65,pn:.35,no:0})[h.v]});if(!Object.keys(attrs).length){$("tMs").innerHTML='<span style="color:#888">回答なし</span>';return}$("tMs").innerHTML='<span style="color:#888">保存中...</span>';sRpc("admin_update_attrs",{p_pass_hash:admH,p_name:nm,p_attrs:attrs}).then(r=>{$("tMs").innerHTML=r==="OK"?`<span style="color:#5efc8d">✅ ${nm} の属性を保存！</span>`:`<span style="color:#fc5e5e">${r||"エラー"}</span>`})}
+$("tHit").onclick=()=>{$("tSrW").classList.add("H");tSave(TG.gn)};
+$("tMiss").onclick=()=>{$("tSrW").classList.remove("H");$("tSr").value="";$("tSl").innerHTML=""};
+$("tSr").oninput=()=>{const q=$("tSr").value.trim().toLowerCase();if(!q){$("tSl").innerHTML="";return}$("tSl").innerHTML=CH.filter(c=>c.name.toLowerCase().includes(q)).slice(0,8).map(c=>`<div class="sri" data-n="${c.name}">${c.emoji} ${c.name}</div>`).join("")||'<div style="text-align:center;font-size:.73em;color:#666;padding:6px">見つかりません</div>'};
+$("tSl").onclick=e=>{const it=e.target.closest(".sri");if(!it)return;$("tSrW").classList.add("H");tSave(it.dataset.n)};
 
 init();
 })();
