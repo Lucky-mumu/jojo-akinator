@@ -247,7 +247,7 @@
 </div>
 <div id="rqOther" class="rqS H">
 <div style="text-align: center; font-size: .68em; color: #666; margin-bottom: 8px;">バグ・間違い報告や質問アイデアを送れます</div>
-<label>カテゴリ</label><select id="rqOcat"><option value="質問のアイデア">💡 質問のアイデア</option><option value="情報の間違い報告">⚠️ 情報の間違い報告</option><option value="バグ報告">🐛 バグ報告</option><option value="その他要望">📝 その他要望</option></select>
+<label>カテゴリ</label><select id="rqOcat"><option value="question">💡 質問のアイデア</option><option value="correction">⚠️ 情報の間違い報告</option><option value="bug">🐛 バグ報告</option><option value="other">📝 その他要望</option></select>
 <label>内容 *</label><textarea id="rqOtxt" placeholder="詳しく教えてください"></textarea>
 <div style="text-align: center; margin-top: 8px;"><button id="rqOsb" class="bt">送信 📩</button></div>
 <div id="rqOms" style="text-align: center; margin-top: 5px; font-size: .8em; min-height: 1.1em;"></div>
@@ -631,7 +631,7 @@ $("rSb").onclick=async()=>{const nm=$("rNm").value.trim();if(!nm){$("rMs").inner
 async function rR(){const el=$("rLs");if(!rq.length){el.innerHTML='<div style="text-align:center;font-size:.7em;color:#666;padding:6px">まだありません</div>';return}
   const active=CH.map(c=>c.name);rq.forEach(r=>{if(active.includes(r.name))r.status="approved"});SS("reqs",rq);
   el.innerHTML=[...rq].reverse().slice(0,15).map(r=>`<div class="ri"><span>${r.name}</span><span class="rbg ${r.status==="approved"?"rap":"rpd"}">${r.status==="approved"?"✅ 追加済み":"⏳ 審査中"}</span></div>`).join("")}
-$("rqOsb").onclick=async()=>{const txt=$("rqOtxt").value.trim();if(!txt){$("rqOms").innerHTML='<span style="color:#fc5e5e">内容を入力してください</span>';return}const cat=$("rqOcat").value;await sRpc("submit_char_request",{p_name:"【"+cat+"】",p_part:0,p_note:txt});$("rqOtxt").value="";$("rqOms").innerHTML='<span style="color:#5efc8d">📩 送信しました！</span>'};
+$("rqOsb").onclick=async()=>{const txt=$("rqOtxt").value.trim();if(!txt){$("rqOms").innerHTML='<span style="color:#fc5e5e">内容を入力してください</span>';return}const cat=$("rqOcat").value;await sP("question_requests",[{question_text:txt,note:"",category:cat}]);$("rqOtxt").value="";$("rqOms").innerHTML='<span style="color:#5efc8d">📩 送信しました！</span>'};
 function showExQ(){$("rqExQ").innerHTML=AT.map(a=>`<div class="eq-item">${a.l} — ${a.q}</div>`).join("");$("rqExSr").value="";$("rqExSr").oninput=()=>{const q=$("rqExSr").value.trim().toLowerCase();$("rqExQ").querySelectorAll(".eq-item").forEach(r=>{r.style.display=(!q||r.textContent.toLowerCase().includes(q))?"":"none"})}}
 
 /* 育てる */
@@ -722,7 +722,7 @@ async function loadReqs(){
   $("aRqQL").innerHTML='<div style="text-align:center;font-size:.74em;color:#888;padding:8px">読み込み中...</div>';
   const qr=await sRpc("get_pending_question_requests");
   if(!qr||!qr.length)$("aRqQL").innerHTML='<div style="text-align:center;font-size:.74em;color:#666;padding:8px">なし</div>';
-  else{$("aRqQL").innerHTML=qr.map(r=>`<div class="adm-req" data-id="${r.id}"><div class="adm-req-nm">${r.question_text}</div><div class="adm-req-info">${r.note||""}</div><div class="adm-req-btns"><button class="bt bs bd aqr-d" data-id="${r.id}">✅ 確認済み</button></div></div>`).join("");
+  else{$("aRqQL").innerHTML=qr.map(r=>`<div class="adm-req" data-id="${r.id}"><div class="adm-req-nm">${r.question_text}${r.category&&r.category!=="question"?` <span class="rbg rpd">${r.category}</span>`:""}</div><div class="adm-req-info">${r.note||""}</div><div class="adm-req-btns"><button class="bt bs bd aqr-d" data-id="${r.id}">✅ 確認済み</button></div></div>`).join("");
   $a(".aqr-d").forEach(b=>b.onclick=async()=>{await sRpc("admin_dismiss_question_request",{p_pass_hash:admH,p_id:parseInt(b.dataset.id)});b.closest(".adm-req").innerHTML='<span style="color:#888">処理済み</span>'})}
 }
 
@@ -795,7 +795,7 @@ function tSQ(){const _=G;G=TG;const q=pQ();if(!q||TG.qc>=TG.maxQ){G=_;tDGu();ret
 $("tAg").onclick=e=>{const b=e.target.closest(".an");if(!b)return;const v=b.dataset.v,q=TG.cq;TG.sn.push({pr:TG.pr.map(p=>({...p})),ak:new Set(TG.ak),qc:TG.qc,h:[...TG.h]});TG.ak.add(q.k);TG.qc++;TG.h.push({a:q.k,v});const _=G;G=TG;bU(q.k,v);const dg=sGu();G=_;dg?tDGu():tSQ()};
 $("tBk").onclick=()=>{if(!TG.sn.length)return;const s=TG.sn.pop();TG.pr=s.pr;TG.ak=s.ak;TG.qc=s.qc;TG.h=s.h;tSQ()};
 function tDGu(){$("tQ").classList.add("H");$("tR").classList.remove("H");const _=G;G=TG;const t=gT(7);G=_;const g=t[0];TG.gn=g.name;$("tRE").textContent=g.emoji;$("tRN").textContent=g.name;$("tSrW").classList.add("H");$("tMs").textContent=""}
-function tSave(nm){const attrs={};TG.h.forEach(h=>{if(h.v==="uk")return;attrs[h.a]=({yes:1,py:.65,pn:.35,no:0})[h.v]});if(!Object.keys(attrs).length){$("tMs").innerHTML='<span style="color:#888">回答なし</span>';return}$("tMs").innerHTML='<span style="color:#888">保存中...</span>';sRpc("admin_update_attrs",{p_pass_hash:admH,p_name:nm,p_attrs:attrs}).then(r=>{$("tMs").innerHTML=r==="OK"?`<span style="color:#5efc8d">✅ ${nm} の属性を保存！</span>`:`<span style="color:#fc5e5e">${r||"エラー"}</span>`})}
+function tSave(nm){const existingChar=admCC.find(c=>c.name===nm);const existingAttrs=existingChar?{...(existingChar.attrs||{})}:{};const merged={};AT.forEach(a=>{merged[a.k]=0});Object.assign(merged,existingAttrs);TG.h.forEach(h=>{if(h.v!=="uk")merged[h.a]=({yes:1,py:.65,pn:.35,no:0})[h.v]??merged[h.a]});if(!TG.h.filter(h=>h.v!=="uk").length){$("tMs").innerHTML='<span style="color:#888">回答なし</span>';return}$("tMs").innerHTML='<span style="color:#888">保存中...</span>';sRpc("admin_update_attrs",{p_pass_hash:admH,p_name:nm,p_attrs:merged}).then(r=>{if(r==="OK"){$("tMs").innerHTML=`<span style="color:#5efc8d">✅ ${nm} の属性を保存！</span>`;if(existingChar)existingChar.attrs=merged;const ch=CH.find(c=>c.name===nm);if(ch)Object.assign(ch.a,merged)}else{$("tMs").innerHTML=`<span style="color:#fc5e5e">${r||"エラー"}</span>`}})}
 $("tHit").onclick=()=>{$("tSrW").classList.add("H");tSave(TG.gn)};
 $("tMiss").onclick=()=>{$("tSrW").classList.remove("H");$("tSr").value="";$("tSl").innerHTML=""};
 $("tSr").oninput=()=>{const q=$("tSr").value.trim().toLowerCase();if(!q){$("tSl").innerHTML="";return}$("tSl").innerHTML=CH.filter(c=>c.name.toLowerCase().includes(q)).slice(0,8).map(c=>`<div class="sri" data-n="${c.name}">${c.emoji} ${c.name}</div>`).join("")||'<div style="text-align:center;font-size:.73em;color:#666;padding:6px">見つかりません</div>'};
