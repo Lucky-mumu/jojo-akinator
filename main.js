@@ -1,4 +1,3 @@
-<script>
 (()=>{
 "use strict";
 const SB_URL="https://fyigspfkjegdhhlajlit.supabase.co",
@@ -245,5 +244,3 @@ $("qSb").onclick=async()=>{const k=$("qKey").value.trim(),q=$("qQ").value.trim()
 
 init();
 })();
-</script>
-</p>
