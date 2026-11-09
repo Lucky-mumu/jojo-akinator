@@ -1,0 +1,2949 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ジョジョ・アキネイター v1.9.1</title>
+  <!-- ver: 1.9.1 | 2026-11-06 | 画面表示の全箇所で名前・絵文字をエスケープ（XSS対策） -->
+  <style>
+/* ============================================================
+   ジョジョアキネイター — スタイルシート
+   クラス名の読み方:
+     .ja     = ジョジョアキネイター全体のラッパー
+     .P      = Page（各画面）
+     .H      = Hidden（非表示）
+     .t / .tb = Tab / Tab Bar（タブ）
+     .bt     = Button（ボタン）
+     .an     = Answer（回答ボタン）
+     .pg/pb  = Progress / Progress Bar（進捗バー）
+   ============================================================ */
+
+/* ---- リセット & 全体 ---------------------------------------- */
+.ja * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+.ja {
+  font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
+  max-width: 540px;
+  margin: 1.5em auto;
+  background: #1a1a2e;
+  color: #eee;
+  border-radius: 18px;
+  padding: 24px 20px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, .5);
+  user-select: none;
+  line-height: 1.5;
+}
+
+/* ---- タイトル ---------------------------------------------- */
+.ja .tt {
+  text-align: center;
+  font-size: 1.35em;
+  font-weight: 900;
+  background: linear-gradient(90deg, #f7d94e, #e8a020);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 2px;
+}
+.ja .su {
+  text-align: center;
+  font-size: .74em;
+  color: #888;
+  margin-bottom: 14px;
+}
+
+/* ---- ボタン ------------------------------------------------- */
+.ja .bt {
+  display: inline-block;
+  background: linear-gradient(135deg, #e8a020, #f7d94e);
+  color: #1a1a2e;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 22px;
+  font-size: .86em;
+  font-weight: 800;
+  cursor: pointer;
+  transition: .2s;
+}
+.ja .bt:hover { transform: scale(1.04); }
+.ja .bt:disabled { opacity: .3; pointer-events: none; }
+
+/* .bs = Small, .bd = Danger(赤), .bg = Good(緑) */
+.ja .bs { padding: 6px 14px; font-size: .78em; border-radius: 8px; }
+.ja .bd { background: linear-gradient(135deg, #e82040, #fc5e5e); color: #fff; }
+.ja .bg { background: linear-gradient(135deg, #20a060, #5efc8d); color: #1a1a2e; }
+
+/* ---- 表示切り替え ------------------------------------------- */
+.ja .H { display: none !important; }
+
+/* ---- タブバー ----------------------------------------------- */
+.ja .tb {
+  display: flex;
+  gap: 3px;
+  justify-content: center;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.ja .t {
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: #16213e;
+  color: #888;
+  font-size: .7em;
+  font-weight: 700;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: .15s;
+}
+.ja .t:hover,
+.ja .t.a { color: #f7d94e; border-color: #f7d94e; }
+
+/* ---- 進捗バー ----------------------------------------------- */
+.ja .pg {
+  height: 5px;
+  background: #16213e;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.ja .pb {
+  height: 100%;
+  background: linear-gradient(90deg, #5efc8d, #20e8a0);
+  border-radius: 5px;
+  transition: width .4s;
+}
+
+/* ---- 質問画面 ----------------------------------------------- */
+.ja .qn {
+  text-align: center;
+  font-size: .72em;
+  color: #666;
+  margin-bottom: 3px;
+}
+.ja .qq {
+  text-align: center;
+  font-size: 1.02em;
+  font-weight: 700;
+  min-height: 2.6em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  padding: 0 4px;
+  line-height: 1.4;
+}
+
+/* TOP3表示 */
+.ja .ch {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.ja .ci {
+  background: #16213e;
+  border: 1px solid #2a2a4a;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: .64em;
+  color: #999;
+}
+.ja .ci.tp { border-color: #f7d94e; color: #f7d94e; font-weight: 700; } /* 1位 */
+
+/* ---- 回答ボタングループ ------------------------------------- */
+.ja .ag {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.ja .ar { display: flex; gap: 6px; }
+.ja .an {
+  flex: 1;
+  padding: 9px 4px;
+  border-radius: 10px;
+  border: 2px solid #2a2a4a;
+  background: #16213e;
+  color: #ddd;
+  font-size: .84em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: .15s;
+  text-align: center;
+}
+.ja .an:hover { transform: scale(1.03); }
+
+/* 各回答の色 */
+.ja .an[data-v="yes"] { border-color: #2d6a4f; color: #5efc8d; }
+.ja .an[data-v="yes"]:hover { background: #1b4332; }
+.ja .an[data-v="py"]  { border-color: #2d5a6a; color: #5ec8fc; }
+.ja .an[data-v="py"]:hover  { background: #1b3342; }
+.ja .an[data-v="uk"]  { border-color: #4a4a2a; color: #bbb; }
+.ja .an[data-v="uk"]:hover  { background: #2a2a1b; }
+.ja .an[data-v="pn"]  { border-color: #6a4a2d; color: #fcb85e; }
+.ja .an[data-v="pn"]:hover  { background: #42301b; }
+.ja .an[data-v="no"]  { border-color: #6a2d2d; color: #fc5e5e; }
+.ja .an[data-v="no"]:hover  { background: #421b1b; }
+
+/* 戻るボタン */
+.ja .bk { display: flex; justify-content: center; margin-top: 6px; }
+.ja .bkb {
+  background: none;
+  border: 1.5px solid #444;
+  color: #999;
+  border-radius: 7px;
+  padding: 4px 13px;
+  font-size: .7em;
+  cursor: pointer;
+}
+.ja .bkb:hover { border-color: #fc5e5e; color: #fc5e5e; }
+.ja .bkb:disabled { opacity: .2; pointer-events: none; }
+
+/* ---- 結果画面 ----------------------------------------------- */
+.ja .rs { text-align: center; padding: 6px 0; }
+.ja .re {
+  font-size: 2.8em;
+  margin-bottom: 4px;
+  animation: jab .9s ease infinite;
+}
+@keyframes jab {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-7px); }
+}
+.ja .rl  { font-size: .78em; color: #888; margin-bottom: 2px; }
+.ja .rn  {
+  font-size: 1.5em;
+  font-weight: 900;
+  background: linear-gradient(90deg, #f7d94e, #e8a020);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 2px;
+}
+.ja .rp  { font-size: .74em; color: #666; margin-bottom: 6px; }
+.ja .rd  { font-size: .78em; color: #777; margin-bottom: 10px; }
+
+/* 確信度バー */
+.ja .cw  { margin-bottom: 14px; }
+.ja .co  {
+  width: 70%;
+  height: 7px;
+  background: #16213e;
+  border-radius: 7px;
+  margin: 4px auto 0;
+  overflow: hidden;
+}
+.ja .cb  { height: 100%; border-radius: 7px; transition: width .6s; }
+.ja .cp  { font-size: .8em; color: #f7d94e; font-weight: 700; margin-top: 2px; }
+
+/* 正誤確認ボタン群 */
+.ja .fq  { font-size: .88em; font-weight: 700; color: #bbb; margin-bottom: 7px; }
+.ja .fbs { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.ja .fb  {
+  padding: 6px 13px;
+  border-radius: 8px;
+  border: 2px solid #2a2a4a;
+  background: #16213e;
+  color: #ddd;
+  font-size: .78em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: .15s;
+}
+.ja .fb:hover { border-color: #f7d94e; color: #f7d94e; transform: scale(1.03); }
+.ja .fm  { margin: 7px 0; font-size: .85em; min-height: 1.3em; }
+.ja .wl  { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin: 7px 0; }
+
+/* 思考中アニメーション */
+.ja .tk  { text-align: center; padding: 28px 0; }
+.ja .ta  { font-size: 2em; color: #f7d94e; animation: jap 1.2s ease infinite; }
+@keyframes jap {
+  0%, 100% { opacity: .3; }
+  50%       { opacity: 1; }
+}
+
+/* ---- フォーム要素 ------------------------------------------- */
+.ja label { display: block; font-size: .73em; color: #aaa; margin: 7px 0 2px; }
+.ja input[type=text],
+.ja input[type=password],
+.ja select,
+.ja textarea {
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 2px solid #2a2a4a;
+  background: #16213e;
+  color: #eee;
+  font-size: .83em;
+  font-family: inherit;
+}
+.ja input:focus,
+.ja textarea:focus { outline: none; border-color: #f7d94e; }
+.ja textarea { min-height: 36px; resize: vertical; }
+
+/* ---- 統計画面 ----------------------------------------------- */
+.ja .sg {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin: 10px 0;
+}
+.ja .sc  { background: #16213e; border-radius: 9px; padding: 10px 5px; text-align: center; }
+.ja .sn  {
+  font-size: 1.6em;
+  font-weight: 900;
+  background: linear-gradient(90deg, #5efc8d, #20e8a0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.ja .sl2 { font-size: .68em; color: #888; }
+
+/* ランキング行 */
+.ja .rr  {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 7px;
+  margin-bottom: 3px;
+  background: #16213e;
+  font-size: .74em;
+}
+.ja .rps { font-weight: 900; color: #f7d94e; width: 16px; }
+.ja .rnm { flex: 1; font-weight: 600; }
+.ja .rb  { width: 55px; height: 5px; background: #0f0f23; border-radius: 5px; overflow: hidden; }
+.ja .rf  { height: 100%; background: #5efc8d; border-radius: 5px; }
+.ja .rpc { font-size: .68em; color: #888; width: 26px; text-align: right; }
+
+/* 接続状態インジケーター */
+.ja .ds  { text-align: center; font-size: .66em; color: #555; margin-top: 8px; }
+.ja .dd  { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 3px; vertical-align: middle; }
+.ja .dd.on  { background: #5efc8d; }  /* オンライン：緑 */
+.ja .dd.lc  { background: #fcb85e; }  /* ローカル：黄 */
+.ja .dd.off { background: #fc5e5e; }  /* オフライン：赤 */
+
+/* ---- リクエスト一覧 ----------------------------------------- */
+.ja .ri  {
+  background: #16213e;
+  border-radius: 7px;
+  padding: 7px 11px;
+  margin-bottom: 4px;
+  font-size: .76em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.ja .rbg { font-size: .66em; padding: 2px 7px; border-radius: 5px; font-weight: 700; }
+.ja .rpd { background: #4a4a1a; color: #f7d94e; }  /* pending：審査中 */
+.ja .rrj { background: #4a1a1a; color: #fc8a8a; }  /* rejected：見送り */
+.ja .rap { background: #1a4a2a; color: #5efc8d; }  /* approved：承認済み */
+
+/* 検索フォーム・結果リスト */
+.ja .sr  {
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 2px solid #2a2a4a;
+  background: #16213e;
+  color: #eee;
+  font-size: .83em;
+  margin-bottom: 6px;
+}
+.ja .sr:focus  { outline: none; border-color: #f7d94e; }
+.ja .srl { max-height: 180px; overflow-y: auto; margin-bottom: 6px; }
+.ja .sri {
+  padding: 7px 10px;
+  border-radius: 7px;
+  background: #16213e;
+  margin-bottom: 3px;
+  cursor: pointer;
+  font-size: .8em;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 1.5px solid transparent;
+  transition: .15s;
+}
+.ja .sri:hover { border-color: #f7d94e; color: #f7d94e; }
+
+/* ---- 管理者画面 --------------------------------------------- */
+.ja .adm-s  { background: #0f0f23; border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+.ja .adm-t  { font-size: .8em; color: #f7d94e; font-weight: 700; margin-bottom: 6px; }
+
+/* 属性行（⭕🔵🟠❌ボタンがある行） */
+.ja .adm-ar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 0;
+  border-bottom: 1px solid #1a1a2e;
+  font-size: .76em;
+}
+.ja .adm-ar:last-child { border: none; }
+.ja .adm-al {
+  flex: 1;
+  color: #ccc;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ja .adm-abs { display: flex; gap: 3px; flex-shrink: 0; }
+
+/* 属性ボタン（⭕🔵🟠❌） */
+.ja .ab {
+  width: 30px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1.5px solid #2a2a4a;
+  background: none;
+  color: #888;
+  font-size: .7em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: .15s;
+}
+.ja .ab:hover { border-color: #f7d94e; color: #f7d94e; }
+.ja .ab.ay { border-color: #2d6a4f; color: #5efc8d; background: #1b4332; } /* yes */
+.ja .ab.ap { border-color: #2d5a6a; color: #5ec8fc; background: #1b3342; } /* probably yes */
+.ja .ab.am { border-color: #6a4a2d; color: #fcb85e; background: #42301b; } /* probably no */
+.ja .ab.an2{ border-color: #6a2d2d; color: #fc5e5e; background: #421b1b; } /* no */
+
+/* リクエスト管理 */
+.ja .adm-req { background: #16213e; border-radius: 7px; padding: 9px 11px; margin-bottom: 5px; }
+.ja .adm-req-top  { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
+.ja .adm-req-nm   { font-weight: 700; font-size: .86em; }
+.ja .adm-req-info { font-size: .68em; color: #888; }
+.ja .adm-req-btns { display: flex; gap: 5px; margin-top: 5px; }
+
+/* キャラ一覧行 */
+.ja .adm-ch {
+  background: #16213e;
+  border-radius: 7px;
+  padding: 7px 10px;
+  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: .78em;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: .15s;
+}
+.ja .adm-ch:hover { border-color: #f7d94e; }
+.ja .adm-ch-nm  { flex: 1; font-weight: 600; }
+.ja .adm-ch-pt  { font-size: .68em; color: #888; }
+.ja .adm-ch-del {
+  background: none;
+  border: 1px solid #6a2d2d;
+  color: #fc5e5e;
+  border-radius: 5px;
+  padding: 2px 7px;
+  font-size: .66em;
+  cursor: pointer;
+}
+.ja .adm-ch-del:hover { background: #421b1b; }
+
+/* 重複警告 */
+.ja .dup-warn {
+  background: #4a4a1a;
+  border-radius: 7px;
+  padding: 6px 10px;
+  margin: 5px 0;
+  font-size: .75em;
+  color: #f7d94e;
+}
+
+/* 質問管理行 */
+.ja .adm-qi {
+  background: #16213e;
+  border-radius: 7px;
+  padding: 7px 10px;
+  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: .76em;
+}
+.ja .adm-qi-nm  { flex: 1; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ja .adm-qi-act { display: flex; gap: 4px; flex-shrink: 0; }
+.ja .adm-qi-btn {
+  background: none;
+  border: 1px solid #2a2a4a;
+  color: #888;
+  border-radius: 5px;
+  padding: 2px 7px;
+  font-size: .7em;
+  cursor: pointer;
+}
+.ja .adm-qi-btn:hover { border-color: #f7d94e; color: #f7d94e; }
+.ja .adm-qi-del {
+  background: none;
+  border: 1px solid #6a2d2d;
+  color: #fc5e5e;
+  border-radius: 5px;
+  padding: 2px 7px;
+  font-size: .7em;
+  cursor: pointer;
+}
+.ja .adm-qi-del:hover { background: #421b1b; }
+.ja .adm-req-attrs summary { cursor: pointer; font-size: .7em; color: #5ec8fc; margin: 3px 0; }
+.ja .adm-req-attrgrid { display: flex; flex-wrap: wrap; gap: 3px 5px; padding: 3px 0 5px; }
+.ja .adm-req-attrgrid span { background: #12121f; border-radius: 4px; padding: 1px 6px; font-size: .68em; color: #bbb; }
+.ja .adm-qi-tgl {
+  background: none; border-radius: 5px; padding: 2px 8px;
+  font-size: .7em; cursor: pointer; min-width: 58px;
+  border: 1px solid #2d6a4f; color: #5efc8d;
+}
+.ja .adm-qi-tgl.off { border-color: #444; color: #888; }
+.ja .adm-qi-tgl:disabled { opacity: .5; cursor: default; }
+.ja .adm-qi-off .adm-qi-nm { opacity: .45; text-decoration: line-through; }
+
+/* 質問一覧表示 */
+.ja .eq-item {
+  background: #16213e;
+  border-radius: 6px;
+  padding: 5px 8px;
+  margin-bottom: 2px;
+  font-size: .7em;
+  color: #999;
+}
+
+/* 折りたたみ */
+.ja details { background: #0f0f23; border-radius: 8px; padding: 8px; margin-top: 10px; }
+.ja summary { font-size: .72em; color: #888; cursor: pointer; padding: 4px 0; }
+.ja details[open] summary { margin-bottom: 5px; }
+
+/* 一括編集行 */
+.ja .bci {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  border-radius: 7px;
+  background: #16213e;
+  margin-bottom: 3px;
+  font-size: .76em;
+  border: 1.5px solid transparent;
+  transition: .15s;
+}
+.ja .bci:hover { border-color: #333; }
+.ja .bci-nm  { flex: 1; font-weight: 600; }
+.ja .bci-abs { display: flex; gap: 3px; flex-shrink: 0; }
+.ja .bci-cur { font-size: .65em; color: #666; width: 36px; text-align: center; }
+
+/* ---- バッジ類 ----------------------------------------------- */
+.ja .qc-badge {
+  display: inline-block;
+  background: #16213e;
+  border: 1.5px solid #f7d94e;
+  border-radius: 8px;
+  padding: 3px 10px;
+  font-size: .72em;
+  color: #f7d94e;
+  font-weight: 700;
+  margin: 4px 0;
+}
+
+/* 連続正解ドット */
+.ja .streak-bar  { display: flex; gap: 2px; justify-content: center; margin: 4px 0; }
+.ja .streak-dot  { width: 8px; height: 8px; border-radius: 50%; }
+.ja .streak-dot.w { background: #5efc8d; }  /* win */
+.ja .streak-dot.l { background: #fc5e5e; }  /* lose */
+.ja .streak-dot.e { background: #2a2a4a; }  /* empty */
+
+/* 難易度バッジ */
+.ja .diff-badge { font-size: .62em; padding: 1px 6px; border-radius: 4px; font-weight: 700; }
+.ja .diff-easy  { background: #1b4332; color: #5efc8d; }
+.ja .diff-med   { background: #4a4a1a; color: #f7d94e; }
+.ja .diff-hard  { background: #421b1b; color: #fc5e5e; }
+
+/* ---- セクション表示制御（旧: .rqS / .stS / .aS / .arS 相当） ---- */
+.req-section,
+.stats-section,
+.admin-section,
+.admin-req-section {
+  /* 表示/非表示は .H クラスで制御。初期状態はそのまま表示 */
+}
+.ja .ab.aq { border-color: #5a5a2d; color: #fcf05e; background: #2e2e10; } /* どちらでもない */
+
+</style>
+</head>
+<body>
+<div id="app-root" class="ja">
+  <div class="tt">🔮 ジョジョ・アキネイター</div>
+  <div class="su">みんなで育てる — 遊ぶほど賢くなる</div>
+  <div id="main-tabs" class="tb">
+    <div class="t a" data-tab="play">🎮 遊ぶ</div>
+    <div class="t"   data-tab="req">📩 要望</div>
+    <div class="t"   data-tab="vote">🗳️ 育てる</div>
+    <div class="t"   data-tab="stats">📊 統計</div>
+    <div class="t"   data-tab="admin">🔧</div>
+  </div>
+  <!-- スタート画面 -->
+  <div id="page-start" class="page">
+    <div style="text-align:center;padding:12px 0">
+      <div style="font-size:2.4em;margin-bottom:6px">🔮</div>
+      <div style="font-size:.88em;color:#ccc;line-height:1.7;margin-bottom:4px">ジョジョのキャラクターを1人<br>思い浮かべてください</div>
+      <div id="header-info" style="font-size:.7em;color:#666;margin-bottom:12px"></div>
+      <button id="btn-game-start" class="bt">スタート！ ➜</button>
+    </div>
+    <div id="connection-status" class="ds"></div>
+  </div>
+  <!-- 質問画面 -->
+  <div id="page-question" class="page H">
+    <div class="pg"><div id="question-progress-bar" class="pb"></div></div>
+    <div class="qn">質問 <span id="question-current-num">1</span>/<span id="question-max-num">20</span></div>
+    <div id="question-text" class="qq"></div>
+    <div style="text-align:center;font-size:.62em;color:#555;margin-bottom:3px">🎯 TOP3</div>
+    <div id="top3-display" class="ch"></div>
+    <div id="answer-buttons" class="ag">
+      <div class="ar"><div class="an" data-v="yes">⭕ はい</div><div class="an" data-v="py">🔵 たぶんYes</div></div>
+      <div class="ar"><div class="an" data-v="uk">❓ わからない</div></div>
+      <div class="ar"><div class="an" data-v="pn">🟠 たぶんNo</div><div class="an" data-v="no">❌ いいえ</div></div>
+    </div>
+    <div class="bk"><button id="btn-go-back" class="bkb" disabled>⬅ 戻る</button></div>
+  </div>
+  <!-- 思考中 -->
+  <div id="page-thinking" class="page H">
+    <div class="tk"><div class="ta">🔮 ✨ 🔮</div><div style="font-size:.8em;color:#888;margin-top:6px">推理中...</div></div>
+  </div>
+  <!-- 結果画面 -->
+  <div id="page-result" class="page H">
+    <div class="rs">
+      <div id="result-emoji" class="re"></div>
+      <div class="rl">あなたが思い浮かべたのは…</div>
+      <div id="result-char-name" class="rn"></div>
+      <div id="result-part-name" class="rp"></div>
+      <div id="result-char-desc" class="rd"></div>
+      <div id="result-question-count-badge" class="qc-badge"></div>
+      <div id="result-global-play-count" style="font-size:.72em;color:#888;margin:4px 0;min-height:1em"></div>
+      <div class="cw">
+        <span style="font-size:.73em;color:#888">確信度</span>
+        <div class="co"><div id="result-confidence-bar" class="cb"></div></div>
+        <div id="result-confidence-percent" class="cp"></div>
+      </div>
+      <div id="correct-check-area">
+        <div class="fq">当たりましたか？</div>
+        <div class="fbs">
+          <div id="btn-answer-correct" class="fb">🎉 当たり！</div>
+          <div id="btn-answer-wrong"   class="fb">😅 ハズレ…</div>
+        </div>
+      </div>
+      <div id="result-feedback-message" class="fm"></div>
+      <div id="wrong-guess-area" class="H">
+        <div style="font-size:.76em;color:#999;margin-bottom:4px">もしかして？</div>
+        <div id="other-candidates-list" class="wl"></div>
+        <div style="margin-top:5px;display:flex;gap:6px;justify-content:center">
+          <span id="btn-ask-more-questions" class="fb">🔮 もう少し質問する</span>
+          <span id="btn-char-not-in-list"   class="fb">🤷 いない</span>
+        </div>
+      </div>
+      <div id="char-search-area" class="H" style="margin:8px 0">
+        <div style="font-size:.78em;color:#ccc;margin-bottom:4px">キャラを検索してください</div>
+        <input id="char-search-input" class="sr" type="text" placeholder="🔍 検索..." />
+        <div id="char-search-results" class="srl"></div>
+        <div style="margin-top:5px;text-align:center"><span id="btn-open-new-char-form" class="fb">⭐ ここにもいない → 新規リクエスト</span></div>
+      </div>
+      <div id="new-char-request-area" class="H" style="margin:8px 0">
+        <div style="font-size:.78em;color:#ccc;margin-bottom:4px">新しいキャラ名を入力してください</div>
+        <div style="display:flex;gap:5px;justify-content:center">
+          <input id="new-char-name-input" style="flex:1;max-width:220px" type="text" placeholder="例: ホル・ホース" />
+          <button id="btn-submit-new-char" class="bt bs">送信</button>
+        </div>
+        <div id="new-char-duplicate-warning" class="H dup-warn"></div>
+      </div>
+      <div id="share-area" class="H" style="margin:8px 0 2px">
+        <div style="font-size:.73em;color:#888;margin-bottom:5px">結果をシェアする</div>
+        <div style="display:flex;gap:7px;justify-content:center;flex-wrap:wrap">
+          <button id="btn-share-x" class="bt bs" style="background:#000;border-color:#555;color:#fff;font-size:.82em">𝕏 でポスト</button>
+          <button id="btn-share-copy" class="bt bs" style="font-size:.8em">🔗 リンクをコピー</button>
+        </div>
+        <div id="share-copy-msg" style="font-size:.7em;color:#5efc8d;min-height:1.2em;margin-top:3px;text-align:center"></div>
+      </div>
+      <div style="margin-top:10px"><button id="btn-play-again" class="bt">もう一度遊ぶ 🔄</button></div>
+    </div>
+  </div>
+  <!-- 要望画面 -->
+  <div id="page-request" class="page H">
+    <div style="text-align:center;margin-bottom:5px;font-size:.84em;color:#ccc">要望・リクエスト</div>
+    <div class="tb">
+      <div class="t a req-sub-tab" data-sub="char">🧑 キャラ追加</div>
+      <div class="t req-sub-tab"   data-sub="feedback">💬 要望・感想</div>
+    </div>
+    <div id="req-char-section" class="req-section">
+      <div style="text-align:center;font-size:.68em;color:#666;margin-bottom:8px">管理者が確認して追加します</div>
+      <div id="req-form-area">
+      <label>キャラクター名 *</label>
+      <input id="req-char-name-input" type="text" placeholder="例: ホル・ホース" />
+      <div id="req-char-duplicate-warning" class="H dup-warn"></div>
+      <div style="display:flex;gap:7px">
+        <div style="flex:1">
+          <label>登場部</label>
+          <select id="req-char-part-select">
+            <option value="">選択</option>
+            <option value="1">第1部</option><option value="2">第2部</option><option value="3">第3部</option>
+            <option value="4">第4部</option><option value="5">第5部</option><option value="6">第6部</option>
+            <option value="7">第7部</option><option value="8">第8部</option><option value="9">第9部</option>
+            <option value="0">スピンオフ/その他</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:7px;margin-top:2px">
+        <div style="flex:0 0 90px">
+          <label>絵文字</label>
+          <input id="req-char-emoji-input" type="text" style="text-align:center" placeholder="👤" maxlength="4" />
+        </div>
+        <div style="flex:1">
+          <label>補足メモ</label>
+          <textarea id="req-char-note-input" placeholder="特徴や能力など" style="min-height:52px"></textarea>
+        </div>
+      </div>
+      <div style="display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-top:8px">
+        <button id="btn-req-start-quiz" class="bt">🎯 質問に答えて送信</button>
+        <button id="btn-submit-char-request" class="bt bs">名前だけ送信 📩</button>
+      </div>
+      <div style="font-size:.66em;color:#888;text-align:center;margin-top:5px;line-height:1.5">質問に答えると、そのキャラの特徴がまとめて登録されやすくなります<br>（登場部の選択が必要です／分からない質問は飛ばせます）</div>
+      </div>
+      <div id="req-quiz-panel" class="H">
+        <div id="req-quiz-charinfo" style="text-align:center;font-size:.8em;color:#f7d94e;margin-bottom:6px"></div>
+        <div class="pg"><div id="req-quiz-progress" class="pb"></div></div>
+        <div class="qn">質問 <span id="req-quiz-num">1</span>/<span id="req-quiz-max">20</span></div>
+        <div id="req-quiz-text" class="qq"></div>
+        <div id="req-quiz-buttons" class="ag">
+          <div class="ar"><div class="an" data-v="yes">⭕ はい</div><div class="an" data-v="py">🔵 たぶんYes</div></div>
+          <div class="ar"><div class="an" data-v="uk">❓ わからない</div></div>
+          <div class="ar"><div class="an" data-v="pn">🟠 たぶんNo</div><div class="an" data-v="no">❌ いいえ</div></div>
+        </div>
+        <div class="bk" style="gap:8px;flex-wrap:wrap">
+          <button id="req-quiz-back" class="bkb" disabled>⬅ 戻る</button>
+          <button id="req-quiz-finish" class="bkb">✅ ここまでで送信</button>
+          <button id="req-quiz-cancel" class="bkb">✖ やめる</button>
+        </div>
+      </div>
+      <div id="char-request-status-message" style="text-align:center;margin-top:5px;font-size:.8em;min-height:1.1em"></div>
+      <div style="margin-top:12px">
+        <div style="font-size:.76em;color:#f7d94e;font-weight:bold;margin-bottom:4px;text-align:center">📋 送信済み</div>
+        <div id="my-char-requests-list"></div>
+      </div>
+    </div>
+    <div id="req-feedback-section" class="req-section H">
+      <div style="text-align:center;font-size:.68em;color:#666;margin-bottom:8px">質問のアイデア・改善要望・感想など、なんでも送れます</div>
+      <label>内容 *</label>
+      <textarea id="feedback-text-input" placeholder="例: ○○という質問を追加してほしい&#10;例: ○○キャラが当てにくい" style="min-height:80px"></textarea>
+      <div style="text-align:center;margin-top:8px"><button id="btn-submit-feedback" class="bt">送信 📩</button></div>
+      <div id="feedback-status-message" style="text-align:center;margin-top:5px;font-size:.8em;min-height:1.1em"></div>
+      <details>
+        <summary>📋 現在ある質問一覧を確認する</summary>
+        <input id="existing-questions-search" class="sr" style="margin-top:5px" type="text" placeholder="🔍 質問を検索..." />
+        <div id="existing-questions-list" style="max-height:180px;overflow-y:auto"></div>
+      </details>
+    </div>
+  </div>
+  <!-- 育てる画面 -->
+  <div id="page-vote" class="page H">
+    <div style="text-align:center;margin-bottom:5px;font-size:.84em;color:#ccc">🗳️ キャラを育てる</div>
+    <div style="text-align:center;font-size:.68em;color:#666;margin-bottom:8px">属性に答えるとアキネイターが賢くなります</div>
+    <input id="vote-char-search-input" class="sr" type="text" placeholder="🔍 キャラ名で検索..." />
+    <div id="vote-char-search-results" class="srl"></div>
+    <div id="vote-game-area" class="H">
+      <div id="vote-char-emoji" style="text-align:center;font-size:1.8em"></div>
+      <div id="vote-char-name" style="text-align:center;font-size:.95em;font-weight:800;margin-bottom:5px"></div>
+      <div class="pg"><div id="vote-progress-bar" class="pb"></div></div>
+      <div id="vote-question-counter" class="qn"></div>
+      <div id="vote-question-text" class="qq"></div>
+      <div id="vote-answer-buttons" class="ag">
+        <div class="ar"><div class="an" data-v="yes">⭕ はい</div><div class="an" data-v="py">🔵 たぶんYes</div></div>
+        <div class="ar"><div class="an" data-v="uk">❓ わからない</div></div>
+        <div class="ar"><div class="an" data-v="pn">🟠 たぶんNo</div><div class="an" data-v="no">❌ いいえ</div></div>
+      </div>
+      <div class="bk"><button id="btn-vote-back" class="bkb" disabled>⬅ 戻る</button></div>
+      <div id="vote-complete-area" class="H" style="text-align:center;padding:12px">
+        <div style="font-size:1.4em;margin-bottom:4px">✨</div>
+        <div style="font-size:.88em;color:#5efc8d;font-weight:bold">学習しました！</div>
+        <div id="vote-complete-message" style="font-size:.7em;color:#888"></div>
+        <button id="btn-vote-another-char" class="bt bs" style="margin-top:8px">別のキャラを育てる</button>
+      </div>
+    </div>
+  </div>
+  <!-- 統計画面 -->
+  <div id="page-stats" class="page H">
+    <div style="text-align:center">
+      <div class="tb">
+        <div class="t a stats-sub-tab" data-sub="me">🏠 あなた</div>
+        <div class="t stats-sub-tab"   data-sub="all">🌍 みんな</div>
+      </div>
+      <div id="stats-my-section" class="stats-section">
+        <div class="sg">
+          <div class="sc"><div id="stat-my-total-plays"       class="sn">0</div><div class="sl2">プレイ</div></div>
+          <div class="sc"><div id="stat-my-accuracy"          class="sn">-%</div><div class="sl2">正解率</div></div>
+          <div class="sc"><div id="stat-total-char-count"     class="sn">0</div><div class="sl2">キャラ数</div></div>
+        </div>
+        <div class="sg">
+          <div class="sc"><div id="stat-my-current-streak"    class="sn">0</div><div class="sl2">🔥 連勝</div></div>
+          <div class="sc"><div id="stat-my-best-streak"       class="sn">-</div><div class="sl2">🏆 最高連勝</div></div>
+          <div class="sc"><div id="stat-my-best-question-count" class="sn">-</div><div class="sl2">⚡ 最速</div></div>
+        </div>
+        <div style="margin-top:6px">
+          <div style="font-size:.72em;color:#888;margin-bottom:3px">直近10戦</div>
+          <div id="recent-match-dots" class="streak-bar"></div>
+        </div>
+        <div style="margin-top:8px">
+          <div style="font-size:.78em;color:#f7d94e;font-weight:bold;margin-bottom:4px">🏅 よく遊んだキャラTOP10</div>
+          <div id="my-popular-chars-ranking"></div>
+        </div>
+        <div style="margin-top:8px">
+          <div style="font-size:.78em;color:#f7d94e;font-weight:bold;margin-bottom:4px">😈 苦手キャラTOP5</div>
+          <div id="my-hard-chars-ranking"></div>
+        </div>
+      </div>
+      <div id="stats-all-section" class="stats-section H">
+        <div class="sg">
+          <div class="sc"><div id="stat-global-total-plays"   class="sn">-</div><div class="sl2">総プレイ</div></div>
+          <div class="sc"><div id="stat-global-accuracy"      class="sn">-%</div><div class="sl2">正解率</div></div>
+          <div class="sc"><div id="stat-global-avg-questions" class="sn">-</div><div class="sl2">平均問数</div></div>
+        </div>
+        <div style="margin-top:8px">
+          <div style="font-size:.78em;color:#f7d94e;font-weight:bold;margin-bottom:4px">🏅 人気キャラTOP10</div>
+          <div id="global-popular-chars-ranking"></div>
+        </div>
+        <div style="margin-top:8px">
+          <div style="font-size:.78em;color:#f7d94e;font-weight:bold;margin-bottom:4px">😈 当てにくいキャラTOP10</div>
+          <div id="global-hard-chars-ranking"></div>
+        </div>
+        <div style="margin-top:8px">
+          <div style="font-size:.78em;color:#f7d94e;font-weight:bold;margin-bottom:4px">⚡ すぐ当てられるキャラTOP5</div>
+          <div id="global-easy-chars-ranking"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- 管理者画面 -->
+  <div id="page-admin" class="page H">
+    <div id="admin-login-area" style="text-align:center;padding:18px 0">
+      <div style="font-size:1.1em;margin-bottom:5px">🔧</div>
+      <div style="font-size:.83em;color:#ccc;margin-bottom:8px">管理パスワード</div>
+      <input id="admin-password-input" style="max-width:200px;margin:0 auto;display:block" type="password" placeholder="パスワード" />
+      <div style="margin-top:8px"><button id="btn-admin-login" class="bt bs">ログイン</button></div>
+      <div id="admin-login-error-message" style="font-size:.76em;color:#fc5e5e;margin-top:5px"></div>
+    </div>
+    <div id="admin-panel" class="H">
+      <div style="text-align:center;font-size:.7em;color:#5efc8d;margin-bottom:8px">🔓 管理モード</div>
+      <div class="tb">
+        <div class="t a admin-tab" data-tab="add">➕ 追加</div>
+        <div class="t admin-tab"   data-tab="akinator">🔮 特殊AK</div>
+        <div class="t admin-tab"   data-tab="requests">📩 リクエスト</div>
+        <div class="t admin-tab"   data-tab="chars">📋 一覧</div>
+        <div class="t admin-tab"   data-tab="questions">❓ 質問</div>
+      </div>
+      <!-- キャラ追加 -->
+      <div id="admin-section-add" class="admin-section">
+        <!-- STEP 1: 基本情報 -->
+        <div id="add-step-basic" class="adm-s">
+          <div class="adm-t">① 基本情報</div>
+          <label>名前 *</label><input id="add-new-char-name" type="text" placeholder="エンポリオ・アルニーニョ" />
+          <div id="add-new-char-duplicate-warning" class="H dup-warn"></div>
+          <div style="display:flex;gap:7px">
+            <div style="flex:1"><label>登場部</label>
+              <select id="add-new-char-part">
+                <option value="">選択</option><option value="1">第1部</option><option value="2">第2部</option>
+                <option value="3">第3部</option><option value="4">第4部</option><option value="5">第5部</option>
+                <option value="6">第6部</option><option value="7">第7部</option><option value="8">第8部</option>
+                <option value="9">第9部</option><option value="0">スピンオフ/その他</option>
+              </select></div>
+            <div style="flex:0 0 80px"><label>絵文字</label><input id="add-new-char-emoji" style="text-align:center" type="text" placeholder="👦" maxlength="4" /></div>
+          </div>
+          <label>説明</label><textarea id="add-new-char-desc" placeholder="キャラクターの特徴や能力"></textarea>
+          <div style="text-align:center;margin-top:6px">
+            <button id="btn-add-go-attrs" class="bt bg bs">属性設定へ ➜</button>
+          </div>
+        </div>
+        <!-- STEP 2: 属性設定 -->
+        <div id="add-step-attrs" class="adm-s H">
+          <div class="adm-t" style="display:flex;align-items:center;justify-content:space-between">
+            <span>② 属性設定</span>
+            <button id="btn-add-back-basic" class="bt bs" style="font-size:.72em;padding:3px 8px">⬅ 基本情報に戻る</button>
+          </div>
+          <div id="add-step-attrs-charinfo" style="font-size:.78em;color:#aaa;margin-bottom:5px;line-height:1.5"></div>
+          <div style="font-size:.68em;color:#5efc8d;margin-bottom:5px">✅ 部を選ぶと登場部属性（part1〜part9 / extra）が自動設定されています</div>
+          <input id="add-attr-finish-search" class="sr" type="text" placeholder="🔍 属性を検索..." />
+          <div id="add-attr-finish-list" style="max-height:560px;overflow-y:auto"></div>
+          <div style="display:flex;gap:7px;justify-content:center;margin-top:8px">
+            <button id="btn-add-char-confirm" class="bt bg bs">✨ 追加する！</button>
+          </div>
+        </div>
+        <div id="add-char-status-message" style="text-align:center;margin-top:7px;font-size:.8em;min-height:1.1em"></div>
+      </div>
+      <!-- 特殊アキネイター -->
+      <div id="admin-section-akinator" class="admin-section H">
+        <div class="adm-s">
+          <div class="adm-t">🔮 管理者専用アキネイター</div>
+          <div style="font-size:.72em;color:#aaa;margin-bottom:8px;line-height:1.6">遊びながら正解キャラに全回答を属性として強力に記録します。</div>
+          <div id="admin-ak-start-area" style="text-align:center"><button id="btn-admin-ak-start" class="bt">開始する</button></div>
+        </div>
+
+        <!-- 質問画面（通常ゲームと同構造） -->
+        <div id="admin-ak-game-area" class="H">
+          <div class="pg"><div id="admin-ak-progress-bar" class="pb"></div></div>
+          <div class="qn">質問 <span id="admin-ak-question-num">1</span>/<span id="admin-ak-question-max">20</span></div>
+          <div id="admin-ak-question-text" class="qq"></div>
+          <div style="text-align:center;font-size:.62em;color:#555;margin-bottom:3px">🎯 TOP3</div>
+          <div id="admin-ak-top3-display" class="ch"></div>
+          <div id="admin-ak-answer-buttons" class="ag">
+            <div class="ar"><div class="an" data-v="yes">⭕ はい</div><div class="an" data-v="py">🔵 たぶんYes</div></div>
+            <div class="ar"><div class="an" data-v="uk">❓ わからない</div></div>
+            <div class="ar"><div class="an" data-v="pn">🟠 たぶんNo</div><div class="an" data-v="no">❌ いいえ</div></div>
+          </div>
+          <div class="bk"><button id="btn-admin-ak-back" class="bkb" disabled>⬅ 戻る</button></div>
+        </div>
+
+        <!-- 結果画面（通常ゲームと同構造） -->
+        <div id="admin-ak-result-area" class="H">
+          <div class="rs">
+            <div id="admin-ak-result-emoji" class="re"></div>
+            <div class="rl">思い浮かべたのは…</div>
+            <div id="admin-ak-result-name" class="rn"></div>
+            <div id="admin-ak-result-part" class="rp"></div>
+            <div id="admin-ak-result-desc" class="rd"></div>
+            <div id="admin-ak-result-badge" class="qc-badge"></div>
+            <div class="cw">
+              <span style="font-size:.73em;color:#888">確信度</span>
+              <div class="co"><div id="admin-ak-confidence-bar" class="cb"></div></div>
+              <div id="admin-ak-confidence-pct" class="cp"></div>
+            </div>
+            <!-- 正誤確認 -->
+            <div id="admin-ak-check-area">
+              <div class="fq">このキャラで正解ですか？</div>
+              <div class="fbs">
+                <div id="btn-admin-ak-correct" class="fb">✅ 正解！（属性を記録）</div>
+                <div id="btn-admin-ak-wrong"   class="fb">😅 ハズレ…</div>
+              </div>
+            </div>
+            <div id="admin-ak-feedback-msg" class="fm"></div>
+            <!-- ハズレ時：候補一覧 -->
+            <div id="admin-ak-wrong-area" class="H">
+              <div style="font-size:.76em;color:#999;margin-bottom:4px">もしかして？</div>
+              <div id="admin-ak-candidates" class="wl"></div>
+              <div style="margin-top:5px;display:flex;gap:6px;justify-content:center">
+                <span id="btn-admin-ak-more-q" class="fb">🔮 もう少し質問する</span>
+                <span id="btn-admin-ak-search" class="fb">🔍 キャラを検索</span>
+              </div>
+            </div>
+            <!-- キャラ検索 -->
+            <div id="admin-ak-search-area" class="H" style="margin:8px 0">
+              <div style="font-size:.78em;color:#ccc;margin-bottom:4px">正解キャラを検索してください</div>
+              <input id="admin-ak-search-input" class="sr" type="text" placeholder="🔍 検索..." />
+              <div id="admin-ak-search-results" class="srl"></div>
+            </div>
+            <div style="margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+              <button id="btn-admin-ak-restart" class="bt">🔄 最初からやり直す</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- リクエスト管理 -->
+      <div id="admin-section-requests" class="admin-section H">
+        <div class="adm-t" style="text-align:center">📩 リクエスト管理</div>
+        <div class="tb">
+          <div class="t a admin-req-tab" data-tab="char-req">🧑 キャラ</div>
+          <div class="t admin-req-tab"   data-tab="feedback-req">💬 要望</div>
+        </div>
+        <div id="admin-char-requests-area"     class="admin-req-area"><div id="admin-char-requests-list"></div></div>
+        <div id="admin-feedback-requests-area" class="admin-req-area H"><div id="admin-feedback-requests-list"></div></div>
+      </div>
+      <!-- キャラ一覧 -->
+      <div id="admin-section-chars" class="admin-section H">
+        <div class="adm-t" style="text-align:center">📋 キャラ一覧</div>
+        <div style="display:flex;gap:6px;margin-bottom:6px">
+          <input id="admin-char-list-search" class="sr" type="text" placeholder="🔍 検索..." style="flex:1" />
+          <button id="btn-admin-char-sort-missing" class="sb" style="font-size:.75em;padding:4px 8px;white-space:nowrap">⚠️ 未設定順</button>
+          <button id="btn-admin-backup" class="sb" style="font-size:.75em;padding:4px 8px;white-space:nowrap">💾 バックアップ</button>
+        </div>
+        <div id="admin-char-list"></div>
+        <div id="admin-char-edit-area" class="H adm-s" style="margin-top:8px">
+          <div class="adm-t">✏️ <span id="edit-char-title-name"></span> を編集</div>
+          <label>名前</label><input id="edit-char-name" type="text" />
+          <label>絵文字</label><input id="edit-char-emoji" style="max-width:80px" type="text" />
+          <div style="display:flex;gap:7px"><div style="flex:1"><label>登場部</label>
+            <select id="edit-char-part">
+              <option value="">-</option><option value="1">1</option><option value="2">2</option>
+              <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+              <option value="6">6</option><option value="7">7</option><option value="8">8</option>
+              <option value="9">9</option><option value="0">その他</option>
+            </select></div></div>
+          <label>説明</label><textarea id="edit-char-desc"></textarea>
+          <div style="margin-top:8px">
+            <div class="adm-t">属性（変えたいものだけ）</div>
+            <input id="edit-char-attr-search" class="sr" type="text" placeholder="🔍 属性を検索..." />
+            <div id="edit-char-attr-list" style="max-height:560px;overflow-y:auto"></div>
+          </div>
+          <div style="display:flex;gap:7px;justify-content:center;margin-top:8px">
+            <button id="btn-save-char-edit"  class="bt bg bs">💾 保存</button>
+            <button id="btn-close-char-edit" class="bt bs">閉じる</button>
+          </div>
+          <div id="char-edit-status-message" style="text-align:center;margin-top:5px;font-size:.78em;min-height:1em"></div>
+        </div>
+      </div>
+      <!-- 質問管理 -->
+      <div id="admin-section-questions" class="admin-section H">
+        <div class="adm-t" style="text-align:center">❓ 質問管理</div>
+        <div class="adm-s">
+          <div class="adm-t">既存の質問</div>
+          <input id="question-list-search" class="sr" type="text" placeholder="🔍 検索..." />
+          <div id="question-active-summary" style="font-size:.7em;color:#888;margin:3px 0"></div>
+          <div id="question-toggle-status" style="font-size:.72em;min-height:1.1em;margin-bottom:3px"></div>
+          <div id="admin-question-list" style="max-height:380px;overflow-y:auto"></div>
+        </div>
+        <div id="question-edit-area" class="H adm-s">
+          <div class="adm-t">✏️ 質問を編集: <span id="edit-question-key-label"></span></div>
+          <label>質問文</label><input id="edit-question-text" type="text" />
+          <label>ラベル</label><input id="edit-question-label-input" type="text" />
+          <label>重要度（0.1〜3.0）</label><input id="edit-question-importance" style="max-width:100px" type="text" />
+          <div style="display:flex;gap:7px;justify-content:center;margin-top:8px">
+            <button id="btn-save-question-edit"  class="bt bg bs">💾 保存</button>
+            <button id="btn-close-question-edit" class="bt bs">閉じる</button>
+          </div>
+          <div id="question-edit-status-message" style="text-align:center;margin-top:5px;font-size:.78em;min-height:1em"></div>
+        </div>
+        <div id="bulk-attr-edit-area" class="H adm-s">
+          <div class="adm-t">📋 一括設定: <span id="bulk-attr-label"></span></div>
+          <div style="font-size:.66em;color:#888;margin-bottom:5px">各キャラの属性を一括で設定できます</div>
+          <input id="bulk-attr-char-search" class="sr" type="text" placeholder="🔍 キャラ名で検索..." />
+          <div id="bulk-attr-char-list" style="max-height:400px;overflow-y:auto"></div>
+          <div style="display:flex;gap:7px;justify-content:center;margin-top:8px">
+            <button id="btn-save-bulk-attr"  class="bt bg bs">💾 一括保存</button>
+            <button id="btn-close-bulk-attr" class="bt bs">閉じる</button>
+          </div>
+          <div id="bulk-attr-status-message" style="text-align:center;margin-top:5px;font-size:.78em;min-height:1em"></div>
+        </div>
+        <div class="adm-s">
+          <div class="adm-t">新しい質問を追加</div>
+          <label>キー（英数字）*</label><input id="new-question-key-input" type="text" placeholder="例: italian" />
+          <div id="new-question-key-duplicate-warning" class="H dup-warn"></div>
+          <label>質問文 *</label><input id="new-question-text-input" type="text" placeholder="例: そのキャラクターはイタリア人ですか？" />
+          <label>ラベル *</label><input id="new-question-label-input" type="text" placeholder="例: イタリア人" />
+          <label>重要度（0.1〜3.0）</label><input id="new-question-importance-input" style="max-width:100px" type="text" value="1.5" />
+          <div style="text-align:center;margin-top:8px"><button id="btn-submit-new-question" class="bt bs">追加</button></div>
+          <div id="new-question-status-message" style="text-align:center;margin-top:5px;font-size:.78em;min-height:1em"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+/* ============================================================
+   ジョジョアキネイター — app.js
+   セクション:
+     1.  定数・設定値
+     2.  DOM操作ユーティリティ
+     3.  ローカルストレージ操作
+     4.  グローバル変数
+     5.  Supabase通信
+     6.  起動・初期化
+     7.  ゲームエンジン（確率計算）
+     8.  メインタブ切り替え
+     9.  ゲーム画面
+    10.  正解判定・学習記録
+    11.  要望・リクエスト画面
+    12.  育てる画面（投票）
+    13.  統計画面
+    14.  管理者画面 — 共通
+    15.  管理者画面 — キャラ追加
+    16.  管理者画面 — 特殊アキネイター
+    17.  管理者画面 — リクエスト管理
+    18.  管理者画面 — キャラ一覧・編集
+    19.  管理者画面 — 質問管理
+   ============================================================ */
+
+(() => {
+  "use strict";
+
+  // ============================================================
+  // 1. 定数・設定値
+  // ============================================================
+
+  const SUPABASE_URL = "https://fyigspfkjegdhhlajlit.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ5aWdzcGZramVnZGhobGFqbGl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MDI3NTcsImV4cCI6MjA4ODQ3ODc1N30.M8Slo1--ZDlbG9MVEFwLnguqchkTjAi5O-c9B7-ABd0";
+
+  const MAX_QUESTIONS              = 20;
+  const EXTRA_QUESTIONS            = 10;
+  const GUESS_THRESHOLD            = 0.52;
+  const MIN_QUESTIONS_BEFORE_GUESS = 7;
+  const ANSWER_WEIGHTS = { yes:1, py:0.7, uk:0, pn:-0.7, no:-1 };
+  const DEFAULT_ATTR_VALUE = 0.5;
+  const PART_NAMES = {
+    1:"第1部",2:"第2部",3:"第3部",4:"第4部",
+    5:"第5部",6:"第6部",7:"第7部",8:"第8部",
+    9:"第9部",0:"スピンオフ/その他",
+  };
+
+  // ============================================================
+  // 2. DOM操作ユーティリティ
+  // ============================================================
+
+  const rootElement = document.getElementById("app-root");
+  const $ = (id) => document.getElementById(id);
+  const $$ = (sel) => rootElement.querySelectorAll(sel);
+
+  function showPage(pageId) {
+    $$(".page").forEach((el) => el.classList.add("H"));
+    $(pageId).classList.remove("H");
+  }
+
+  // ============================================================
+  // 3. ローカルストレージ操作
+  // ============================================================
+
+  const loadFromStorage = (key) => {
+    try { return JSON.parse(localStorage.getItem("jojo_ak_" + key)); }
+    catch { return null; }
+  };
+  const saveToStorage = (key, value) => {
+    try { localStorage.setItem("jojo_ak_" + key, JSON.stringify(value)); }
+    catch {}
+  };
+
+  // ============================================================
+  // 4. グローバル変数
+  // ============================================================
+
+  let attributeList = [];
+  let characterList = [];
+  let charMap = {}; // name -> character オブジェクトの高速参照用
+  let playCountSinceRefresh = 0; // 学習データ再取得用カウンター
+  let learnData = {};
+  let stats = {
+    total:0, correct:0, pop:{}, qCounts:[], bestQ:999,
+    streak:0, maxStreak:0, recent:[], fast:{}, hard:{},
+  };
+  let myCharRequests = [];
+  let pendingServerRequests = [];
+  const adminProcessedRequests = new Set(); // 承認/却下済みリクエストをキャッシュ（却下復活防止）
+  let isOnline = false;
+  let adminPasswordHash = "";
+  let isAdminAuthenticated = false;
+
+  // ============================================================
+  // 5. Supabase通信
+  // ============================================================
+
+  async function supabaseGet(path) {
+    const res = await fetch(SUPABASE_URL + "/rest/v1/" + path, {
+      headers: { apikey:SUPABASE_KEY, Authorization:"Bearer "+SUPABASE_KEY },
+    });
+    return res.ok ? res.json() : null;
+  }
+
+  async function supabasePost(path, body) {
+    try {
+      await fetch(SUPABASE_URL + "/rest/v1/" + path, {
+        method:"POST",
+        headers:{ apikey:SUPABASE_KEY, Authorization:"Bearer "+SUPABASE_KEY, "Content-Type":"application/json", Prefer:"return=minimal" },
+        body:JSON.stringify(body),
+      });
+    } catch {}
+  }
+
+  async function supabaseRpc(funcName, args) {
+    const res = await fetch(SUPABASE_URL + "/rest/v1/rpc/" + funcName, {
+      method:"POST",
+      headers:{ apikey:SUPABASE_KEY, Authorization:"Bearer "+SUPABASE_KEY, "Content-Type":"application/json" },
+      body:JSON.stringify(args || {}),
+    });
+    if (res.status === 204) return "OK"; // void関数は204を返す
+    let body;
+    try { body = await res.json(); } catch { body = null; }
+    if (!res.ok) {
+      // エラー詳細をコンソールに出力（F12で確認可能）
+      console.error("[supabaseRpc] " + funcName + " failed (" + res.status + "):", body);
+      const msg = (body && (body.message || body.error || body.hint)) ? (body.message || body.error || body.hint) : JSON.stringify(body);
+      return { __error: true, status: res.status, message: msg };
+    }
+    // 200だがボディがnullの場合もOK扱い
+    if (body === null || body === "") return "OK";
+    return body;
+  }
+
+  // RPC結果がエラーかどうかを判定するヘルパー
+  function isRpcError(res) {
+    return res === null || res === undefined || (typeof res === "object" && res && res.__error);
+  }
+  function getRpcErrorMsg(res) {
+    if (res === null || res === undefined) return "応答なし";
+    if (typeof res === "object" && res && res.__error) return "HTTP " + res.status + ": " + res.message;
+    return "不明なエラー";
+  }
+
+  // 利用者が入力した文字列をHTMLに埋め込むときのエスケープ
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (ch) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+
+  // 全質問（無効含む）を取得。新RPC未登録なら従来のget_custom_attrs（有効のみ）にフォールバック
+  let attrToggleSupported = true;
+  async function fetchAllAttrs() {
+    const all = await supabaseRpc("get_all_custom_attrs");
+    if (Array.isArray(all)) {
+      attrToggleSupported = true;
+      return all.map((a) => ({ key:a.key, label:a.label, question:a.question, info:a.info, is_active:a.is_active !== false }));
+    }
+    attrToggleSupported = false;
+    const act = await supabaseRpc("get_custom_attrs");
+    return Array.isArray(act) ? act.map((a) => ({ ...a, is_active:true })) : [];
+  }
+
+  // ============================================================
+  // 6. 起動・初期化
+  // ============================================================
+
+  async function refreshServerLearning() {
+    try {
+      const serverLearn = await supabaseRpc("get_learned_attrs");
+      serverLearn?.forEach((item) => {
+        const ch = charMap[item.char_name];
+        if (!ch) return;
+        const learned = Number(item.learned_value);
+        const count   = Number(item.vote_count || 5);
+        const cur     = ch.a[item.attr_key] ?? DEFAULT_ATTR_VALUE;
+        if (count >= 30) {
+          ch.a[item.attr_key] = learned;
+        } else {
+          const weight = 0.3 + (count - 5) / 100;
+          ch.a[item.attr_key] = cur * (1 - weight) + learned * weight;
+        }
+      });
+    } catch(e) {}
+  }
+
+  function buildCharMap() {
+    charMap = {};
+    characterList.forEach((ch) => { charMap[ch.name] = ch; });
+  }
+
+  function formatCharacter(raw) {
+    // サーバーに明示的に保存された値だけセットする。
+    // 未設定は undefined のままにして、確率更新時にスキップされるようにする。
+    // (0.5という「なんとなくの中間値」で確率を動かすより、無視した方が精度が高い)
+    const a = Object.assign({}, raw.attrs || {});
+    return { name:raw.name, part:raw.part, emoji:raw.emoji||"❓", desc:raw.description||"", a };
+  }
+
+  async function init() {
+    // 匿名ユーザーID（ブラウザごとに固定）
+    if (!loadFromStorage("uid")) saveToStorage("uid", generateSessionId());
+    learnData      = loadFromStorage("learn") || {};
+    myCharRequests = loadFromStorage("reqs")  || [];
+    const saved    = loadFromStorage("stats");
+    if (saved) {
+      stats = { ...stats, ...saved };
+      ["qCounts","recent"].forEach((k) => { stats[k] = stats[k] || []; });
+      ["fast","hard","pop"].forEach((k) => { stats[k] = stats[k] || {}; });
+      stats.streak    = stats.streak    || 0;
+      stats.maxStreak = stats.maxStreak || 0;
+      stats.bestQ     = stats.bestQ     || 999;
+    }
+    try {
+      const fetchedAttrs = (await fetchAllAttrs()).filter((a) => a.is_active);
+      if (fetchedAttrs.length) {
+        attributeList = fetchedAttrs.map((a) => ({ k:a.key, q:a.question, l:a.label, i:Number(a.info)||1.5 }));
+      }
+      if (!attributeList.length) {
+        $("header-info").textContent = "⚠️ 質問データが読み込めません";
+        $("connection-status").innerHTML = '<span class="dd off"></span>エラー';
+        return;
+      }
+      const fetchedChars = await supabaseGet("characters?is_active=eq.true&select=name,part,emoji,description,attrs");
+      if (fetchedChars?.length) { characterList = fetchedChars.map(formatCharacter); buildCharMap(); }
+      try {
+        await refreshServerLearning();
+      } catch {}
+      try {
+        const pending = await supabaseRpc("get_pending_requests");
+        if (pending) pendingServerRequests = pending;
+      } catch {}
+      isOnline = true;
+    } catch (e) {
+      console.log("起動エラー:", e);
+      $("connection-status").innerHTML = '<span class="dd off"></span>接続エラー';
+    }
+    updateHeaderDisplay();
+  }
+
+  function applyLocalLearning() {
+    // ローカル学習廃止: サーバーの集合知のみで学習する
+  }
+
+  function updateHeaderDisplay() {
+    $("header-info").textContent = `${isOnline?"🟢":"🟡"} ${characterList.length}キャラ・${attributeList.length}問`;
+    $("connection-status").innerHTML = isOnline
+      ? '<span class="dd on"></span>オンライン'
+      : '<span class="dd lc"></span>ローカル';
+    $("stat-total-char-count").textContent = characterList.length;
+  }
+
+  async function hashPassword(str) {
+    return [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str)))]
+      .map((b) => b.toString(16).padStart(2,"0")).join("");
+  }
+
+  function generateSessionId() {
+    return crypto.randomUUID?.() ??
+      "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+        const r = (Math.random()*16)|0;
+        return (c==="x" ? r : (r&3)|8).toString(16);
+      });
+  }
+
+  function findSimilarCharacters(name) {
+    const q = name.toLowerCase().replace(/[\s・=]/g,"");
+    if (q.length < 2) return [];
+    return characterList.filter((c) => {
+      const n = c.name.toLowerCase().replace(/[\s・=]/g,"");
+      return n.includes(q) || q.includes(n) || (q.length>2 && n.includes(q.slice(0,3)));
+    }).slice(0,5);
+  }
+
+  function findSimilarPendingRequests(name) {
+    const q = name.toLowerCase();
+    return pendingServerRequests.filter((r) =>
+      r.char_name.toLowerCase().includes(q) || q.includes(r.char_name.toLowerCase())
+    ).slice(0,3);
+  }
+
+  // ============================================================
+  // 7. ゲームエンジン
+  // ============================================================
+
+  let game = {};
+
+  function initGame() {
+    game = {
+      sessionId:       generateSessionId(),
+      probs:           Object.fromEntries(characterList.map((c) => [c.name, 1/characterList.length])),
+      askedAttrKeys:   {},
+      questionCount:   0,
+      answerHistory:   [],
+      snapshots:       [],
+      currentQuestion: null,
+      guessedCharName: "",
+      alreadyGuessed:  new Set(),
+      maxQuestions:    MAX_QUESTIONS,
+    };
+  }
+
+  function updateProbabilities(attrKey, answer) {
+    const weight = ANSWER_WEIGHTS[answer];
+    // 未設定属性(undefined)はスキップ: 0.5で誤魔化すより無視した方が精度が高い
+    Object.keys(game.probs).forEach((name) => {
+      const ch = charMap[name];
+      const raw = ch?.a[attrKey];
+      if (raw === undefined || raw === DEFAULT_ATTR_VALUE) return; // 未設定はスキップ
+      let lk;
+      if      (weight > 0) lk = 0.1 + 0.9 * raw       * Math.abs(weight);
+      else if (weight < 0) lk = 0.1 + 0.9 * (1 - raw) * Math.abs(weight);
+      else                 lk = 1;
+      game.probs[name] *= lk;
+    });
+    const total = Object.values(game.probs).reduce((s,p) => s+p, 0);
+    if (total > 0) Object.keys(game.probs).forEach((n) => (game.probs[n] /= total));
+  }
+
+  function pickBestQuestion() {
+    let best = null, bestScore = -1;
+    attributeList.forEach((attr) => {
+      if (game.askedAttrKeys[attr.k]) return;
+      let yesSum=0, noSum=0, totalW=0;
+      Object.entries(game.probs).forEach(([name, prob]) => {
+        if (game.alreadyGuessed.has(name)) return;
+        const val = charMap[name]?.a[attr.k];
+        if (val === undefined || val === DEFAULT_ATTR_VALUE) return; // 未設定はスキップ
+        yesSum += prob * val;
+        noSum  += prob * (1-val);
+        totalW += prob;
+      });
+      if (totalW < 0.01) return; // 有効なキャラがほぼいない
+      const balance  = 1 - Math.abs(yesSum - noSum) / totalW;
+      const progress = Math.min(1, game.questionCount/12);
+      const score    = balance*(1-progress*0.3) + attr.i*progress*0.3;
+      if (score > bestScore) { bestScore=score; best=attr; }
+    });
+    return best;
+  }
+
+  function getTopCharacters(count) {
+    return Object.entries(game.probs)
+      .filter(([name]) => !game.alreadyGuessed.has(name))
+      .sort((a,b) => b[1]-a[1])
+      .slice(0,count)
+      .map(([name,prob]) => {
+        const ch = charMap[name];
+        if (!ch) return { name, prob, emoji:"❓", part:0, desc:"", a:{} };
+        return { ...ch, prob };
+      })
+      .filter((c) => c.name); // nameがundefinedのキャラを除外
+  }
+
+  const MIN_ROUND_QUESTIONS = 5; // 延長戦で最低これだけ答えないとGuessしない
+
+  function shouldGuessNow() {
+    if (game.questionCount < MIN_QUESTIONS_BEFORE_GUESS) return false;
+    // 延長戦中（roundStartCount > 0）のみ延長内の最低問数チェック
+    if (game.roundStartCount > 0) {
+      const roundQuestions = game.questionCount - game.roundStartCount;
+      if (roundQuestions < MIN_ROUND_QUESTIONS) return false;
+    }
+    const top2 = getTopCharacters(2);
+    return (
+      top2[0].prob >= GUESS_THRESHOLD ||
+      game.questionCount >= game.maxQuestions ||
+      (top2.length>=2 && top2[0].prob > top2[1].prob*2.5 && game.questionCount>=10)
+    );
+  }
+
+  // ============================================================
+  // 8. メインタブ切り替え
+  // ============================================================
+
+  $$(".t[data-tab]").forEach((tab) => {
+    tab.onclick = () => {
+      $$(".t[data-tab]").forEach((t) => t.classList.remove("a"));
+      tab.classList.add("a");
+      ({
+        play:  () => showPage("page-start"),
+        req:   () => { showPage("page-request"); renderMyCharRequests(); showExistingQuestions(); },
+        vote:  () => { showPage("page-vote");    resetVoteScreen(); },
+        stats: () => { showPage("page-stats");   renderMyStats(); },
+        admin: () => showPage("page-admin"),
+      })[tab.dataset.tab]?.();
+    };
+  });
+
+  // ============================================================
+  // 9. ゲーム画面
+  // ============================================================
+
+  $("btn-game-start").onclick = () => {
+    if (!characterList.length || !attributeList.length) return;
+    initGame();
+    showPage("page-question");
+    showNextQuestion();
+  };
+
+  function showNextQuestion() {
+    const question = pickBestQuestion();
+    if (!question || game.questionCount >= game.maxQuestions) { showGuessResult(); return; }
+    game.currentQuestion = question;
+    $("question-current-num").textContent  = game.questionCount + 1;
+    $("question-max-num").textContent      = game.maxQuestions;
+    $("question-progress-bar").style.width = (game.questionCount/game.maxQuestions*100)+"%";
+    $("question-text").textContent         = question.q;
+    const top3 = getTopCharacters(3);
+    $("top3-display").innerHTML = top3.map((c,i) =>
+      `<div class="ci${i===0?" tp":""}">${esc(c.emoji)} ${esc(c.name)} ${(c.prob*100).toFixed(0)}%</div>`
+    ).join("");
+    $("btn-go-back").disabled = !game.snapshots.length;
+  }
+
+  $("answer-buttons").onclick = (e) => {
+    const btn = e.target.closest(".an");
+    if (!btn) return;
+    const answer = btn.dataset.v, question = game.currentQuestion;
+    game.snapshots.push({
+      probs: {...game.probs},
+      askedAttrKeys: {...game.askedAttrKeys},
+      questionCount: game.questionCount,
+      roundStartCount: game.roundStartCount,
+      answerHistory: [...game.answerHistory],
+    });
+    game.askedAttrKeys[question.k] = true;
+    game.questionCount++;
+    game.answerHistory.push({ attrKey:question.k, answer });
+    updateProbabilities(question.k, answer);
+    shouldGuessNow() ? showGuessResult() : showNextQuestion();
+  };
+
+  $("btn-go-back").onclick = () => {
+    if (!game.snapshots.length) return;
+    const snap = game.snapshots.pop();
+    game.probs = snap.probs;
+    game.askedAttrKeys = snap.askedAttrKeys;
+    game.questionCount = snap.questionCount;
+    game.roundStartCount = snap.roundStartCount ?? 0;
+    game.answerHistory = snap.answerHistory;
+    showNextQuestion();
+  };
+
+  function showGuessResult() {
+    showPage("page-thinking");
+    setTimeout(() => {
+      const topChars = getTopCharacters(7), top = topChars[0];
+      $("result-emoji").textContent     = top.emoji;
+      $("result-char-name").textContent = top.name;
+      $("result-part-name").textContent = PART_NAMES[top.part] || "";
+      $("result-char-desc").textContent = top.desc;
+
+      const pct = Math.min(99, Math.round(top.prob*100));
+      $("result-confidence-percent").textContent = pct+"%";
+      const bar = $("result-confidence-bar");
+      bar.style.width = "0%";
+      bar.style.background = pct>70
+        ? "linear-gradient(90deg,#5efc8d,#20e8a0)"
+        : pct>40 ? "linear-gradient(90deg,#f7d94e,#e8a020)"
+        : "linear-gradient(90deg,#fc5e5e,#e84020)";
+      setTimeout(() => { bar.style.width = pct+"%"; }, 100);
+
+      const diffKey   = game.questionCount<=8?"easy":game.questionCount<=15?"med":"hard";
+      const diffLabel = game.questionCount<=8?"余裕":game.questionCount<=15?"普通":"苦戦";
+      $("result-question-count-badge").innerHTML =
+        `${game.questionCount}問でたどり着きました！ <span class="diff-badge diff-${diffKey}">${diffLabel}</span>`;
+
+      $("result-global-play-count").textContent = "";
+      fetchGlobalPlayCount(top.name).then((n) => {
+        game._sharePlayCount = n;
+        if (n !== null)
+          $("result-global-play-count").textContent = `🎮 このキャラは世界で ${n.toLocaleString()} 回プレイされました`;
+      });
+
+      $("other-candidates-list").innerHTML = topChars.slice(1,6).map((c) =>
+        `<div class="fb" data-char-name="${esc(c.name)}">${esc(c.emoji)} ${esc(c.name)}</div>`
+      ).join("");
+
+      $("correct-check-area").style.display = "block";
+      ["wrong-guess-area","char-search-area","new-char-request-area"].forEach((id) => $(id).classList.add("H"));
+      $("result-feedback-message").textContent = "";
+      game.guessedCharName = top.name;
+
+      // 共有ボタンのセットアップ
+      $("share-area").classList.add("H");
+      $("share-copy-msg").textContent = "";
+      game._shareTop = top;
+      game._shareQCount = game.questionCount;
+
+      showPage("page-result");
+    }, 1400);
+  }
+
+  async function fetchGlobalPlayCount(charName) {
+    try {
+      const res = await supabaseGet(`game_sessions?select=actual_name&actual_name=eq.${encodeURIComponent(charName)}`);
+      return res ? res.length : null;
+    } catch { return null; }
+  }
+
+  $("btn-play-again").onclick = () => { initGame(); showPage("page-question"); showNextQuestion(); };
+
+  // X(Twitter)共有
+  $("btn-share-x").onclick = () => {
+    const top = game._shareTop;
+    if (!top) return;
+    const q = game._shareQCount || "?";
+    const pc = game._sharePlayCount;
+    const pcLine = pc !== null && pc !== undefined ? `\nこのキャラクターは累計${pc.toLocaleString()}回プレイされています` : "";
+    const text = `🔮 ジョジョ・アキネイターで「${top.name}」を${q}問で当てられた！${pcLine}\n#ジョジョアキネイター`;
+    const siteUrl = location.href.split("?")[0];
+    window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(siteUrl)}`, "_blank", "noopener");
+  };
+
+  // リンクコピー
+  $("btn-share-copy").onclick = async () => {
+    const top = game._shareTop;
+    if (!top) return;
+    const q = game._shareQCount || "?";
+    const diff = q<=8?"余裕":q<=15?"普通":"苦戦";
+    const pc = game._sharePlayCount;
+    const pcLine = pc !== null && pc !== undefined ? `\nこのキャラクターは累計${pc.toLocaleString()}回プレイされています` : "";
+    const siteUrl = location.href.split("?")[0];
+    const text = `🔮 ジョジョ・アキネイターで「${top.name}」を${q}問で当てられた！${pcLine}\n#ジョジョアキネイター\n${siteUrl}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      $("share-copy-msg").textContent = "✅ コピーしました！";
+    } catch {
+      // フォールバック
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.style.position="fixed"; ta.style.opacity="0";
+      document.body.appendChild(ta); ta.select(); document.execCommand("copy");
+      document.body.removeChild(ta);
+      $("share-copy-msg").textContent = "✅ コピーしました！";
+    }
+    setTimeout(()=>{ $("share-copy-msg").textContent=""; }, 2500);
+  };
+
+  $("btn-ask-more-questions").onclick = () => {
+    $("wrong-guess-area").classList.add("H");
+    $("result-feedback-message").textContent = "";
+    game.maxQuestions = game.questionCount + EXTRA_QUESTIONS;
+    showPage("page-question"); showNextQuestion();
+  };
+
+  $("btn-char-not-in-list").onclick = () => {
+    $("wrong-guess-area").classList.add("H");
+    $("char-search-area").classList.remove("H");
+    $("char-search-input").value = "";
+    $("char-search-results").innerHTML = "";
+  };
+
+  $("char-search-input").oninput = () => {
+    const q = $("char-search-input").value.trim().toLowerCase();
+    if (!q) { $("char-search-results").innerHTML = ""; return; }
+    $("char-search-results").innerHTML =
+      characterList.filter((c) => c.name.toLowerCase().includes(q)).slice(0,8)
+        .map((c) => `<div class="sri" data-char-name="${esc(c.name)}">${esc(c.emoji)} ${esc(c.name)}</div>`)
+        .join("") ||
+      '<div style="text-align:center;font-size:.73em;color:#666;padding:6px">見つかりません</div>';
+  };
+
+  $("char-search-results").onclick = (e) => {
+    const item = e.target.closest(".sri"); if (!item) return;
+    $("char-search-area").classList.add("H");
+    $("result-feedback-message").innerHTML = `<span style="color:#5efc8d">💡 ${item.dataset.charName} を学習しました！</span>`;
+    recordGameResult(game.guessedCharName, item.dataset.charName, false);
+  };
+
+  $("btn-open-new-char-form").onclick = () => {
+    $("char-search-area").classList.add("H");
+    $("new-char-request-area").classList.remove("H");
+    $("new-char-name-input").value = "";
+    $("new-char-duplicate-warning").classList.add("H");
+  };
+
+  $("new-char-name-input").oninput = () => {
+    const similar = findSimilarCharacters($("new-char-name-input").value.trim());
+    const pending = findSimilarPendingRequests($("new-char-name-input").value.trim());
+    const msgs = [];
+    if (similar.length) msgs.push("登録済み: "+similar.map((c) => c.name).join(", "));
+    if (pending.length) msgs.push("リクエスト済み: "+pending.map((r) => r.char_name).join(", "));
+    if (msgs.length) {
+      $("new-char-duplicate-warning").classList.remove("H");
+      $("new-char-duplicate-warning").textContent = "⚠️ "+msgs.join(" / ");
+    } else { $("new-char-duplicate-warning").classList.add("H"); }
+  };
+
+  $("btn-submit-new-char").onclick = async () => {
+    const name = $("new-char-name-input").value.trim(); if (!name) return;
+    const result = await supabaseRpc("submit_char_request",{p_name:name,p_part:0,p_note:"ゲーム中"});
+    if (result==="EXISTS") {
+      recordGameResult(game.guessedCharName, name, false);
+      $("result-feedback-message").innerHTML = `<span style="color:#5efc8d">💡 ${esc(name)} を学習！</span>`;
+    } else if (result==="VOTED") {
+      recordGameResult(game.guessedCharName, name, false);
+      $("result-feedback-message").innerHTML = `<span style="color:#5efc8d">🗳️ ${esc(name)} に投票しました！</span>`;
+    } else {
+      recordMyCharRequest(name);
+      recordGameResult(game.guessedCharName, name, false);
+      $("result-feedback-message").innerHTML = `<span style="color:#5efc8d">✨ ${esc(name)} をリクエストしました！</span>`;
+    }
+    $("new-char-request-area").classList.add("H");
+  };
+
+  // ============================================================
+  // 10. 正解判定・学習記録
+  // ============================================================
+
+  function recordGameResult(guessedName, actualName, wasCorrect) {
+    const target = actualName || guessedName;
+    // canLearnCharacterチェックを廃止: サーバー記録は常に行う
+    stats.total++;
+    if (wasCorrect) {
+      stats.correct++;
+      stats.streak++;
+      if (stats.streak > stats.maxStreak) stats.maxStreak = stats.streak;
+      stats.qCounts.push(game.questionCount);
+      if (game.questionCount < stats.bestQ) stats.bestQ = game.questionCount;
+      if (!stats.fast[target] || game.questionCount < stats.fast[target]) stats.fast[target] = game.questionCount;
+    } else {
+      stats.streak = 0;
+      stats.hard[target] = (stats.hard[target]||0)+1;
+    }
+    stats.pop[target] = (stats.pop[target]||0)+1;
+    stats.recent = [wasCorrect?1:0, ...(stats.recent||[])].slice(0,10);
+    saveToStorage("stats", stats);
+    supabaseRpc("record_game_session",{p_id:game.sessionId,p_user_id:loadFromStorage("uid")||"",p_guessed_name:guessedName,p_actual_name:target,p_was_correct:wasCorrect,p_total_questions:game.questionCount});
+    supabaseRpc("record_answer_logs",{p_logs:game.answerHistory.map(({attrKey,answer},i)=>({session_id:game.sessionId,attr_key:attrKey,answer,question_no:i+1}))});
+    // 5回に1回サーバー学習データを再取得して反映
+    playCountSinceRefresh++;
+    if (playCountSinceRefresh >= 5) {
+      playCountSinceRefresh = 0;
+      setTimeout(() => refreshServerLearning(), 2000); // 2秒後に取得（サーバー処理待ち）
+    }
+  }
+
+  function canLearnCharacter(name) {
+    const times = (loadFromStorage("learntime")||{})[name]||[];
+    return times.filter((t) => t>Date.now()-86400000).length < 3;
+  }
+  function markCharacterLearned(name) {
+    const all = loadFromStorage("learntime")||{};
+    all[name] = [...((all[name]||[]).filter((t) => t>Date.now()-86400000)), Date.now()];
+    saveToStorage("learntime", all);
+  }
+
+  $("btn-answer-correct").onclick = () => {
+    $("correct-check-area").style.display = "none";
+    $("result-feedback-message").innerHTML = '<span style="color:#5efc8d">🎉 正解！</span>';
+    // 正解時に共有ボタンを表示
+    $("share-area").classList.remove("H");
+    recordGameResult(game.guessedCharName, game.guessedCharName, true);
+  };
+
+  $("btn-answer-wrong").onclick = () => {
+    $("correct-check-area").style.display = "none";
+    game.alreadyGuessed.add(game.guessedCharName);
+    $("wrong-guess-area").classList.remove("H");
+    $("result-feedback-message").innerHTML = '<span style="color:#fcb85e">正解を教えてください 👇</span>';
+  };
+
+  $("other-candidates-list").onclick = (e) => {
+    const btn = e.target.closest(".fb"); if (!btn) return;
+    $("wrong-guess-area").classList.add("H");
+    $("result-feedback-message").innerHTML = `<span style="color:#5efc8d">💡 ${btn.dataset.charName} を学習しました！</span>`;
+    recordGameResult(game.guessedCharName, btn.dataset.charName, false);
+  };
+
+  // ============================================================
+  // 11. 要望・リクエスト画面
+  // ============================================================
+
+  $$(".req-sub-tab").forEach((tab) => {
+    tab.onclick = () => {
+      $$(".req-sub-tab").forEach((t) => t.classList.remove("a"));
+      tab.classList.add("a");
+      $$(".req-section").forEach((s) => s.classList.add("H"));
+      $({char:"req-char-section",feedback:"req-feedback-section"}[tab.dataset.sub]).classList.remove("H");
+      if (tab.dataset.sub==="feedback") showExistingQuestions();
+    };
+  });
+
+  $("req-char-name-input").oninput = () => {
+    const name = $("req-char-name-input").value.trim();
+    const similar = findSimilarCharacters(name), pending = findSimilarPendingRequests(name);
+    const msgs = [];
+    if (similar.length) msgs.push("登録済み: "+similar.map((c) => c.name).join(", "));
+    if (pending.length) msgs.push("リクエスト済み: "+pending.map((r) => r.char_name).join(", "));
+    if (msgs.length) {
+      $("req-char-duplicate-warning").classList.remove("H");
+      $("req-char-duplicate-warning").textContent = "⚠️ "+msgs.join(" / ");
+      $("btn-submit-char-request").disabled = $("btn-req-start-quiz").disabled = !!characterList.find((c) => c.name===name);
+    } else {
+      $("req-char-duplicate-warning").classList.add("H");
+      $("btn-submit-char-request").disabled = $("btn-req-start-quiz").disabled = false;
+    }
+  };
+
+  // ---- 要望の送信（「名前だけ」「質問に答えて」共通）----
+  function recordMyCharRequest(name) {
+    const i = myCharRequests.findIndex((r) => r.name===name);
+    if (i >= 0) myCharRequests.splice(i, 1);   // 再送信時は履歴を1件にまとめる
+    myCharRequests.push({name, date:new Date().toISOString(), status:"pending"});
+    saveToStorage("reqs", myCharRequests);
+  }
+
+  function resetCharRequestForm() {
+    $("req-char-name-input").value = $("req-char-part-select").value = $("req-char-note-input").value = $("req-char-emoji-input").value = "";
+    $("req-char-duplicate-warning").classList.add("H");
+  }
+
+  async function submitCharRequest({name, part, note, emoji, attrs}) {
+    const msg = $("char-request-status-message");
+    const args = {p_name:name, p_part:part, p_note:note, p_emoji:emoji||null};
+    if (attrs && Object.keys(attrs).length) args.p_attrs = attrs;
+    msg.innerHTML = '<span style="color:#888">送信中...</span>';
+    const result = await supabaseRpc("submit_char_request", args);
+    if (result==="EXISTS") {
+      msg.innerHTML = '<span style="color:#fc5e5e">そのキャラは登録済みです</span>';
+    } else if (result==="VOTED") {
+      msg.innerHTML = '<span style="color:#5efc8d">🗳️ 既にリクエストされています。投票しました！</span>';
+      resetCharRequestForm();
+    } else if (result==="OK") {
+      recordMyCharRequest(name);
+      resetCharRequestForm();
+      msg.innerHTML = '<span style="color:#5efc8d">📩 リクエストを送信しました！</span>';
+      renderMyCharRequests();
+    } else {
+      msg.innerHTML = '<span style="color:#fc5e5e">❌ 送信に失敗しました。時間をおいてもう一度お試しください</span>';
+    }
+  }
+
+  $("btn-submit-char-request").onclick = async () => {
+    const name = $("req-char-name-input").value.trim();
+    if (!name) { $("char-request-status-message").innerHTML='<span style="color:#fc5e5e">名前を入力してください</span>'; return; }
+    await submitCharRequest({
+      name,
+      part: parseInt($("req-char-part-select").value) || 0,
+      note: $("req-char-note-input").value.trim(),
+      emoji: $("req-char-emoji-input").value.trim(),
+    });
+  };
+
+  // ---- 質問に答えて送信 ----
+  const REQ_QUIZ_COUNT = 20;
+  let reqQuiz = null;   // {name, part, emoji, note, questions, log:[{k, v}]}
+
+  // 既存キャラの値が割れている（情報量が多い）質問を優先して選ぶ。登場部系は部の選択から自動設定するので除外。
+  function pickReqQuizQuestions() {
+    buildPartAttrMap();
+    const skip = new Set([...Object.values(partAttrMap), spinoffAttrKey]);
+    if (attributeList.some((a) => a.k==="female")) skip.add("male");   // 男女は表裏なので片方だけ聞く
+    const total = characterList.length || 1;
+    return attributeList
+      .filter((a) => !skip.has(a.k))
+      .map((a) => {
+        const vals = characterList.map((ch) => ch.a[a.k]).filter((v) => typeof v==="number");
+        if (vals.length < 3) return {a, s:0};
+        const mean = vals.reduce((s, v) => s+v, 0) / vals.length;
+        const variance = vals.reduce((s, v) => s+(v-mean)**2, 0) / vals.length;
+        return {a, s: variance * (vals.length/total)};   // 設定済みキャラが多いほど信頼できる
+      })
+      .filter((x) => x.s > 0)
+      .sort((x, y) => y.s-x.s)
+      .slice(0, REQ_QUIZ_COUNT)
+      .map((x) => x.a);
+  }
+
+  function showReqQuiz(show) {
+    $("req-quiz-panel").classList.toggle("H", !show);
+    $("req-form-area").classList.toggle("H", show);
+  }
+
+  function renderReqQuiz() {
+    const idx = reqQuiz.log.length, total = reqQuiz.questions.length;
+    if (idx >= total) { finishReqQuiz(); return; }
+    $("req-quiz-num").textContent = idx+1;
+    $("req-quiz-max").textContent = total;
+    $("req-quiz-text").textContent = reqQuiz.questions[idx].q;
+    $("req-quiz-progress").style.width = (idx/total*100)+"%";
+    $("req-quiz-back").disabled = idx===0;
+  }
+
+  async function finishReqQuiz() {
+    const quiz = reqQuiz; if (!quiz) return;
+    reqQuiz = null;   // 二重送信防止
+    const attrs = getAutoAttrsByPart(quiz.part);
+    quiz.log.forEach(({k, v}) => { if (v!==undefined) attrs[k] = v; });   // 「わからない」は保存しない
+    if (typeof attrs.female==="number") attrs.male = Math.round((1-attrs.female)*100)/100;
+    showReqQuiz(false);
+    await submitCharRequest({name:quiz.name, part:quiz.part, note:quiz.note, emoji:quiz.emoji, attrs});
+  }
+
+  $("btn-req-start-quiz").onclick = () => {
+    const msg = $("char-request-status-message");
+    const name = $("req-char-name-input").value.trim();
+    const partVal = $("req-char-part-select").value;
+    if (!name) { msg.innerHTML='<span style="color:#fc5e5e">名前を入力してください</span>'; return; }
+    if (partVal==="") { msg.innerHTML='<span style="color:#fc5e5e">登場部を選んでください（質問に答える場合は必須です）</span>'; return; }
+    const questions = pickReqQuizQuestions();
+    if (questions.length < 5) { msg.innerHTML='<span style="color:#fc5e5e">質問を読み込めませんでした。「名前だけ送信」をご利用ください</span>'; return; }
+    reqQuiz = {
+      name, part:parseInt(partVal), emoji:$("req-char-emoji-input").value.trim(),
+      note:$("req-char-note-input").value.trim(), questions, log:[],
+    };
+    $("req-quiz-charinfo").textContent = `${reqQuiz.emoji || "👤"} ${name} / ${PART_NAMES[reqQuiz.part]}`;
+    msg.textContent = "";
+    showReqQuiz(true);
+    renderReqQuiz();
+  };
+
+  $("req-quiz-buttons").onclick = (e) => {
+    const btn = e.target.closest(".an");
+    if (!btn || !reqQuiz) return;
+    const v = {yes:1, py:0.7, pn:0.3, no:0}[btn.dataset.v];   // わからない → undefined（保存しない）
+    reqQuiz.log.push({k:reqQuiz.questions[reqQuiz.log.length].k, v});
+    renderReqQuiz();
+  };
+  $("req-quiz-back").onclick   = () => { if (reqQuiz && reqQuiz.log.length) { reqQuiz.log.pop(); renderReqQuiz(); } };
+  $("req-quiz-finish").onclick = () => finishReqQuiz();
+  $("req-quiz-cancel").onclick = () => { reqQuiz = null; showReqQuiz(false); };
+
+  // ---- 送信済み一覧（サーバーの審査状況を反映）----
+  function paintMyCharRequests() {
+    const el = $("my-char-requests-list");
+    if (!myCharRequests.length) { el.innerHTML='<div style="text-align:center;font-size:.7em;color:#666;padding:6px">まだありません</div>'; return; }
+    const active = characterList.map((ch) => ch.name);
+    myCharRequests.forEach((r) => { if (active.includes(r.name)) r.status = "approved"; });
+    saveToStorage("reqs", myCharRequests);
+    const badge = (s) => s==="approved" ? ["rap","✅ 追加済み"] : s==="rejected" ? ["rrj","❌ 見送り"] : ["rpd","⏳ 審査中"];
+    el.innerHTML = [...myCharRequests].reverse().slice(0, 15).map((r) => {
+      const [cls, label] = badge(r.status);
+      return `<div class="ri"><span>${esc(r.name)}</span><span class="rbg ${cls}">${label}</span></div>`;
+    }).join("");
+  }
+
+  async function refreshMyReqStatuses() {
+    const names = [...new Set(myCharRequests.map((r) => r.name))].slice(-30);
+    if (!names.length) return;
+    const rows = await supabaseRpc("get_request_statuses", {p_names:names});
+    if (!Array.isArray(rows)) return;   // SQL未実行なら従来どおりの表示
+    const map = Object.fromEntries(rows.map((r) => [r.char_name, r.status]));
+    myCharRequests.forEach((r) => { if (r.status!=="approved" && map[r.name]) r.status = map[r.name]; });
+    paintMyCharRequests();
+  }
+
+  function renderMyCharRequests() {
+    paintMyCharRequests();
+    refreshMyReqStatuses();
+  }
+
+  $("btn-submit-feedback").onclick = () => {
+    const text = $("feedback-text-input").value.trim();
+    if (!text) { $("feedback-status-message").innerHTML='<span style="color:#fc5e5e">内容を入力してください</span>'; return; }
+    supabaseRpc("submit_question_request",{p_question_text:text,p_note:"要望・感想"});
+    $("feedback-text-input").value="";
+    $("feedback-status-message").innerHTML='<span style="color:#5efc8d">📩 送信しました！ありがとうございます</span>';
+  };
+
+  function showExistingQuestions() {
+    $("existing-questions-list").innerHTML = attributeList.map((a) => `<div class="eq-item">${a.l} — ${a.q}</div>`).join("");
+    $("existing-questions-search").value="";
+    $("existing-questions-search").oninput = () => {
+      const q = $("existing-questions-search").value.trim().toLowerCase();
+      $("existing-questions-list").querySelectorAll(".eq-item").forEach((row) => {
+        row.style.display = !q||row.textContent.toLowerCase().includes(q) ? "":"none";
+      });
+    };
+  }
+
+  // ============================================================
+  // 12. 育てる画面
+  // ============================================================
+
+  let voteSession = {chara:null,questions:[],index:0,answers:{},snapshots:[]};
+
+  function resetVoteScreen() {
+    $("vote-char-search-input").value="";
+    $("vote-char-search-results").innerHTML="";
+    $("vote-game-area").classList.add("H");
+  }
+
+  function canVoteForChar(name) {
+    const t=(loadFromStorage("votetime")||{})[name]; return !t||Date.now()-t>86400000;
+  }
+  function markCharVoted(name) {
+    const all=loadFromStorage("votetime")||{}; all[name]=Date.now(); saveToStorage("votetime",all);
+  }
+
+  $("vote-char-search-input").oninput = () => {
+    const q=$("vote-char-search-input").value.trim().toLowerCase();
+    if (!q) { $("vote-char-search-results").innerHTML=""; return; }
+    $("vote-char-search-results").innerHTML =
+      characterList.filter((c) => c.name.toLowerCase().includes(q)).slice(0,10)
+        .map((c) => `<div class="sri" data-char-name="${esc(c.name)}">${esc(c.emoji)} ${esc(c.name)}</div>`)
+        .join("") ||
+      '<div style="text-align:center;font-size:.73em;color:#666;padding:6px">見つかりません</div>';
+  };
+
+  $("vote-char-search-results").onclick = (e) => {
+    const item=e.target.closest(".sri"); if (!item) return;
+    const ch=characterList.find((c) => c.name===item.dataset.charName); if (!ch) return;
+    if (!canVoteForChar(ch.name)) {
+      $("vote-char-search-results").innerHTML=`<div style="text-align:center;font-size:.73em;color:#fcb85e;padding:6px">⏰ ${esc(ch.name)}は24時間以内に回答済みです</div>`;
+      return;
+    }
+    voteSession = {
+      chara:ch,
+      questions:[...attributeList].sort(()=>Math.random()-.5).slice(0,15),
+      index:0, answers:{}, snapshots:[],
+    };
+    $("vote-char-search-results").innerHTML=""; $("vote-char-search-input").value="";
+    $("vote-game-area").classList.remove("H"); $("vote-complete-area").classList.add("H");
+    $("vote-char-emoji").textContent=ch.emoji; $("vote-char-name").textContent=ch.name;
+    showVoteQuestion();
+  };
+
+  function showVoteQuestion() {
+    if (voteSession.index>=voteSession.questions.length) { finishVoting(); return; }
+    $("vote-progress-bar").style.width=(voteSession.index/voteSession.questions.length*100)+"%";
+    $("vote-question-counter").textContent=`${voteSession.index+1}/${voteSession.questions.length}`;
+    $("vote-question-text").textContent=`${voteSession.chara.name}は…${voteSession.questions[voteSession.index].q}`;
+    $("btn-vote-back").disabled=voteSession.index===0;
+  }
+
+  $("vote-answer-buttons").onclick = (e) => {
+    const btn=e.target.closest(".an"); if (!btn||voteSession.index>=voteSession.questions.length) return;
+    voteSession.snapshots.push({index:voteSession.index,answers:{...voteSession.answers}});
+    voteSession.answers[voteSession.questions[voteSession.index].k]={yes:100,py:75,uk:50,pn:25,no:0}[btn.dataset.v];
+    voteSession.index++; showVoteQuestion();
+  };
+
+  $("btn-vote-back").onclick = () => {
+    if (!voteSession.snapshots.length) return;
+    const snap=voteSession.snapshots.pop(); voteSession.index=snap.index; voteSession.answers=snap.answers; showVoteQuestion();
+  };
+
+  function finishVoting() {
+    $("vote-question-text").textContent=$("vote-question-counter").textContent="";
+    $("vote-progress-bar").style.width="100%";
+    $("vote-complete-area").classList.remove("H");
+    $("vote-complete-message").textContent=`${Object.keys(voteSession.answers).length}個の属性を学習に反映しました`;
+    markCharVoted(voteSession.chara.name);
+    const sid=generateSessionId();
+    supabaseRpc("record_attr_votes",{p_votes:Object.entries(voteSession.answers).map(([k,v])=>({char_name:voteSession.chara.name,attr_key:k,vote:v,session_id:sid}))});
+    const nm=voteSession.chara.name;
+    if (!learnData[nm]) learnData[nm]={};
+    Object.entries(voteSession.answers).forEach(([k,v]) => {
+      if (!learnData[nm][k]) learnData[nm][k]={};
+      const ans=v>=75?"yes":v<=25?"no":"uk";
+      learnData[nm][k][ans]=(learnData[nm][k][ans]||0)+1;
+    });
+    saveToStorage("learn",learnData); applyLocalLearning();
+  }
+
+  $("btn-vote-another-char").onclick = resetVoteScreen;
+
+  // ============================================================
+  // 13. 統計画面
+  // ============================================================
+
+  $$(".stats-sub-tab").forEach((tab) => {
+    tab.onclick = () => {
+      $$(".stats-sub-tab").forEach((t) => t.classList.remove("a")); tab.classList.add("a");
+      $$(".stats-section").forEach((s) => s.classList.add("H"));
+      $({me:"stats-my-section",all:"stats-all-section"}[tab.dataset.sub]).classList.remove("H");
+      if (tab.dataset.sub==="all") fetchAndRenderGlobalStats();
+    };
+  });
+
+  let globalStatsCache = null;
+
+  function renderMyStats() {
+    $("stat-my-total-plays").textContent        = stats.total;
+    $("stat-my-accuracy").textContent           = stats.total ? Math.round(stats.correct/stats.total*100)+"%" : "-%";
+    $("stat-total-char-count").textContent      = characterList.length;
+    $("stat-my-current-streak").textContent     = stats.streak;
+    $("stat-my-best-streak").textContent        = stats.maxStreak||0;
+    $("stat-my-best-question-count").textContent = stats.bestQ<999 ? stats.bestQ+"問" : "-";
+
+    const recent=stats.recent||[];
+    $("recent-match-dots").innerHTML = Array.from({length:10},(_,i) =>
+      `<div class="streak-dot ${i<recent.length?(recent[i]?"w":"l"):"e"}"></div>`
+    ).join("");
+
+    const popE=Object.entries(stats.pop).sort((a,b)=>b[1]-a[1]).slice(0,10), popMax=popE[0]?.[1]||1;
+    $("my-popular-chars-ranking").innerHTML = popE.length
+      ? popE.map(([nm,cnt],i) => { const ch=characterList.find((c)=>c.name===nm); return `<div class="rr"><span class="rps">${i+1}</span><span>${esc(ch?.emoji||"❓")}</span><span class="rnm">${esc(nm)}</span><div class="rb"><div class="rf" style="width:${cnt/popMax*100}%"></div></div><span class="rpc">${cnt}回</span></div>`; }).join("")
+      : '<div style="text-align:center;font-size:.7em;color:#666;padding:6px">まだデータがありません</div>';
+
+    const hardE=Object.entries(stats.hard||{}).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    $("my-hard-chars-ranking").innerHTML = hardE.length
+      ? hardE.map(([nm,cnt],i) => { const ch=characterList.find((c)=>c.name===nm); return `<div class="rr"><span class="rps">${i+1}</span><span>${esc(ch?.emoji||"❓")}</span><span class="rnm">${esc(nm)}</span><span class="rpc">${cnt}回ハズレ</span></div>`; }).join("")
+      : '<div style="text-align:center;font-size:.7em;color:#666;padding:6px">-</div>';
+  }
+
+  async function fetchAndRenderGlobalStats() {
+    // キャッシュを使わず毎回サーバーから取得する
+    $("stat-global-total-plays").textContent=$("stat-global-accuracy").textContent=$("stat-global-avg-questions").textContent="…";
+    const data=await supabaseRpc("get_global_stats"); if (!data) return;
+    globalStatsCache=data; renderGlobalStats(data);
+  }
+
+  function renderGlobalStats(d) {
+    $("stat-global-total-plays").textContent   = d.total_games||0;
+    $("stat-global-accuracy").textContent      = d.total_games?Math.round((d.total_correct||0)/d.total_games*100)+"%":"-%";
+    $("stat-global-avg-questions").textContent = d.avg_questions?d.avg_questions+"問":"-";
+    const pop=d.popular||[], popMax=pop[0]?.count||1;
+    $("global-popular-chars-ranking").innerHTML = pop.length
+      ? pop.map((r,i) => { const ch=characterList.find((c)=>c.name===r.name); return `<div class="rr"><span class="rps">${i+1}</span><span>${esc(ch?.emoji||"❓")}</span><span class="rnm">${esc(r.name)}</span><div class="rb"><div class="rf" style="width:${r.count/popMax*100}%"></div></div><span class="rpc">${r.count}回</span></div>`; }).join("")
+      : '<div style="text-align:center;font-size:.7em;color:#666;padding:6px">-</div>';
+    const hard=d.hardest||[];
+    $("global-hard-chars-ranking").innerHTML = hard.length
+      ? hard.map((r,i) => { const ch=characterList.find((c)=>c.name===r.name); return `<div class="rr"><span class="rps">${i+1}</span><span>${esc(ch?.emoji||"❓")}</span><span class="rnm">${esc(r.name)}</span><div class="rb"><div class="rf" style="width:${r.rate}%;background:#fc5e5e"></div></div><span class="rpc">${r.rate}%</span></div>`; }).join("")
+      : '<div style="text-align:center;font-size:.7em;color:#666;padding:6px">まだデータが足りません</div>';
+    const easy=d.easiest||[];
+    $("global-easy-chars-ranking").innerHTML = easy.length
+      ? easy.map((r,i) => { const ch=characterList.find((c)=>c.name===r.name); return `<div class="rr"><span class="rps">${i+1}</span><span>${esc(ch?.emoji||"❓")}</span><span class="rnm">${esc(r.name)}</span><span style="font-size:.72em;color:#5efc8d;font-weight:700">${r.avg_q}問</span></div>`; }).join("")
+      : '<div style="text-align:center;font-size:.7em;color:#666;padding:6px">まだデータが足りません</div>';
+  }
+
+  // ============================================================
+  // 14. 管理者画面 — 共通
+  // ============================================================
+
+  $("btn-admin-login").onclick = async () => {
+    const hash=await hashPassword($("admin-password-input").value);
+    const result=await supabaseRpc("admin_verify",{p_pass_hash:hash});
+    if (result==="OK") {
+      adminPasswordHash=hash; isAdminAuthenticated=true;
+      $("admin-login-area").classList.add("H"); $("admin-panel").classList.remove("H");
+      initAdminAddForm();
+    } else { $("admin-login-error-message").textContent="パスワードが違います"; }
+  };
+
+  $$(".admin-tab").forEach((tab) => {
+    tab.onclick = () => {
+      $$(".admin-tab").forEach((t) => t.classList.remove("a")); tab.classList.add("a");
+      $$(".admin-section").forEach((s) => s.classList.add("H"));
+      ({
+        add:       () => { $("admin-section-add").classList.remove("H");       initAdminAddForm(); },
+        akinator:  () => { $("admin-section-akinator").classList.remove("H");  initAdminAkinator(); },
+        requests:  () => { $("admin-section-requests").classList.remove("H");  loadAdminRequests(); },
+        chars:     () => { $("admin-section-chars").classList.remove("H");     loadAdminCharList(); },
+        questions: () => { $("admin-section-questions").classList.remove("H"); loadAdminQuestions(); },
+      })[tab.dataset.tab]?.();
+    };
+  });
+
+  // 属性ボタン行を生成する共通関数
+  // values に値がある属性だけボタンをハイライト。なければどれも光らない（=0.5扱いと視覚的に明示）
+  function buildAttrButtonList(items, listId, searchId, values={}) {
+    $(listId).innerHTML = items.map((a) => {
+      const v=values[a.k];
+      const isMiddle = (v === 0.5);
+      const set = (v !== undefined && !isMiddle);
+      return `<div class="adm-ar" data-attr-key="${a.k}">
+        <span class="adm-al">${a.l}${a.q?"（"+a.q+"）":""}</span>
+        <div class="adm-abs">
+          <button class="ab${set&&v>=0.8?" ay":""}"        data-v="1">⭕</button>
+          <button class="ab${set&&v>0.5&&v<0.8?" ap":""}"  data-v=".7">🔵</button>
+          <button class="ab${set&&v>0.2&&v<0.5?" am":""}"  data-v=".3">🟠</button>
+          <button class="ab${set&&v<=0.2?" an2":""}"       data-v="0">❌</button>
+          <button class="ab${isMiddle?" aq":""}"           data-v=".5" title="どちらでもない（考えた結果）">❓</button>
+        </div>
+      </div>`;
+    }).join("");
+    $(listId).onclick = (e) => {
+      const btn=e.target.closest(".ab"); if (!btn) return;
+      btn.closest(".adm-ar").querySelectorAll(".ab").forEach((b) => b.classList.remove("ay","ap","am","an2","aq"));
+      btn.classList.add({1:"ay",".7":"ap",".3":"am",0:"an2",".5":"aq"}[btn.dataset.v]);
+    };
+    if (searchId && $(searchId)) {
+      $(searchId).oninput = () => {
+        const q=$(searchId).value.trim().toLowerCase();
+        $(listId).querySelectorAll(".adm-ar").forEach((row) => {
+          row.style.display=!q||row.querySelector(".adm-al").textContent.toLowerCase().includes(q)?"":"none";
+        });
+      };
+    }
+  }
+
+  function collectAttrValues(listId) {
+    const result={};
+    $(listId).querySelectorAll(".adm-ar").forEach((row) => {
+      const sel=row.querySelector(".ab.ay,.ab.ap,.ab.am,.ab.an2,.ab.aq");
+      if (sel) result[row.dataset.attrKey]=parseFloat(sel.dataset.v);
+    });
+    return result;
+  }
+
+  // ============================================================
+  // 15. 管理者画面 — キャラ追加
+  // ============================================================
+
+  // ============================================================
+  // 部→属性キーの自動マッピング
+  // attributeListがロードされた後に部関連キーを検出して構築する
+  // ============================================================
+  let partAttrMap = {}; // { 1: "part1", 2: "part2", ... } のようなマップ
+  let spinoffAttrKey = null; // 「本編以外が初出」系のキー
+
+  function buildPartAttrMap() {
+    // キー名が確定しているので固定マッピング
+    partAttrMap = {1:"part1",2:"part2",3:"part3",4:"part4",5:"part5",6:"part6",7:"part7",8:"part8",9:"part9"};
+    spinoffAttrKey = "extra";
+  }
+
+  // 部番号から自動設定すべき属性値を返す
+  function getAutoAttrsByPart(partNum) {
+    const result = {};
+    const allPartKeys = Object.values(partAttrMap);
+
+    if (partNum === 0) {
+      // スピンオフ/その他: 本編以外=○、各部=×
+      if (spinoffAttrKey) result[spinoffAttrKey] = 1;
+      allPartKeys.forEach((k) => { result[k] = 0; });
+    } else {
+      // 通常部: 選択した部=○、他の部=×、本編以外=×
+      allPartKeys.forEach((k) => {
+        result[k] = (partAttrMap[partNum] === k) ? 1 : 0;
+      });
+      if (spinoffAttrKey) result[spinoffAttrKey] = 0;
+    }
+    return result;
+  }
+
+  function initAdminAddForm() {
+    buildPartAttrMap();
+    $("add-char-status-message").textContent="";
+    $("add-new-char-name").value=$("add-new-char-part").value=$("add-new-char-emoji").value=$("add-new-char-desc").value="";
+    $("add-new-char-duplicate-warning").classList.add("H");
+    // STEP1を表示、STEP2を隠す
+    $("add-step-basic").classList.remove("H");
+    $("add-step-attrs").classList.add("H");
+    buildAttrButtonList(attributeList, "add-attr-finish-list", "add-attr-finish-search", {});
+  }
+
+  // 「属性設定へ」ボタン：STEP1→STEP2 遷移
+  $("btn-add-go-attrs").onclick = () => {
+    const name = $("add-new-char-name").value.trim();
+    if (!name) {
+      $("add-char-status-message").innerHTML='<span style="color:#fc5e5e">名前を入力してください</span>';
+      return;
+    }
+    $("add-char-status-message").textContent="";
+    // 部が選ばれていたら自動属性を適用（onchangeを手動トリガー）
+    const partVal = $("add-new-char-part").value;
+    if (partVal !== "") $("add-new-char-part").dispatchEvent(new Event("change"));
+    // STEP2のキャラ情報表示を更新
+    const partNum = parseInt(partVal);
+    const partLabel = partVal===""?"(部未選択)":partVal==="0"?"スピンオフ/その他":`第${partVal}部`;
+    const emoji = $("add-new-char-emoji").value.trim() || "❓";
+    $("add-step-attrs-charinfo").textContent = `${emoji} ${name} / ${partLabel}`;
+    $("add-step-basic").classList.add("H");
+    $("add-step-attrs").classList.remove("H");
+  };
+
+  // 「基本情報に戻る」ボタン
+  $("btn-add-back-basic").onclick = () => {
+    $("add-step-attrs").classList.add("H");
+    $("add-step-basic").classList.remove("H");
+    $("add-char-status-message").textContent="";
+  };
+
+  $("add-new-char-name").oninput = () => {
+    const similar=findSimilarCharacters($("add-new-char-name").value.trim());
+    similar.length
+      ? ($("add-new-char-duplicate-warning").classList.remove("H"), $("add-new-char-duplicate-warning").textContent="⚠️ 似たキャラがいます: "+similar.map((c)=>c.name).join(", "))
+      : $("add-new-char-duplicate-warning").classList.add("H");
+  };
+
+  // 部選択時に部関連属性を自動設定
+  $("add-new-char-part").onchange = () => {
+    const val = $("add-new-char-part").value;
+    if (val === "") return;
+    const partNum = parseInt(val);
+    const autoAttrs = getAutoAttrsByPart(isNaN(partNum) ? 0 : partNum);
+    if (!Object.keys(autoAttrs).length) return;
+    // 一覧の該当行のボタン選択状態を更新（クラスはab、選択済みはay/ap/am/an2/aq）
+    const ACTIVE_CLASSES = ["ay","ap","am","an2","aq"];
+    const list = $("add-attr-finish-list");
+    Object.entries(autoAttrs).forEach(([key, attrVal]) => {
+      const row = list.querySelector(`[data-attr-key="${key}"]`);
+      if (!row) return;
+      row.querySelectorAll(".ab").forEach((b) => {
+        ACTIVE_CLASSES.forEach((c) => b.classList.remove(c));
+      });
+      // data-v が完全一致するボタンに正しいクラスを付与
+      const V_CLASS = {"1":"ay",".7":"ap",".3":"am","0":"an2",".5":"aq"};
+      const targetBtn = row.querySelector(`.ab[data-v="${attrVal}"]`);
+      if (targetBtn && V_CLASS[String(attrVal)]) targetBtn.classList.add(V_CLASS[String(attrVal)]);
+    });
+  };
+
+  async function submitNewCharacter() {
+    if (!isAdminAuthenticated) return;
+    const name=$("add-new-char-name").value.trim();
+    if (!name) { $("add-char-status-message").innerHTML='<span style="color:#fc5e5e">名前を入力してください</span>'; return; }
+    const attrs={};
+    // 未設定はundefinedのまま（0.5で埋めない）
+    Object.assign(attrs,collectAttrValues("add-attr-finish-list"));
+    $("add-char-status-message").innerHTML='<span style="color:#888">送信中...</span>';
+    const result=await supabaseRpc("admin_add_character",{p_pass_hash:adminPasswordHash,p_name:name,p_part:parseInt($("add-new-char-part").value)||0,p_emoji:$("add-new-char-emoji").value.trim()||"❓",p_description:$("add-new-char-desc").value.trim(),p_attrs:attrs});
+    if (result==="OK") {
+      $("add-char-status-message").innerHTML=`<span style="color:#5efc8d">✅ ${esc(name)} を追加しました！</span>`;
+      const nc={name,part:parseInt($("add-new-char-part").value)||0,emoji:$("add-new-char-emoji").value.trim()||"❓",desc:$("add-new-char-desc").value.trim(),a:attrs};
+      const idx=characterList.findIndex((c)=>c.name===name);
+      if (idx>=0) characterList[idx]=nc; else characterList.push(nc);
+      updateHeaderDisplay(); setTimeout(initAdminAddForm,1500);
+    } else { $("add-char-status-message").innerHTML=`<span style="color:#fc5e5e">${result||"エラー"}</span>`; }
+  }
+
+  $("btn-add-char-confirm").onclick = submitNewCharacter;
+
+  // ============================================================
+  // 16. 管理者画面 — 特殊アキネイター
+  //     通常ゲームと同じ画面・機能。正解時に全回答を属性として強力に記録。
+  // ============================================================
+
+  let adminAkGame = {};
+
+  function initAdminAkinator() {
+    $("admin-ak-start-area").classList.remove("H");
+    $("admin-ak-game-area").classList.add("H");
+    $("admin-ak-result-area").classList.add("H");
+    $("admin-ak-feedback-msg").textContent="";
+  }
+
+  $("btn-admin-ak-start").onclick = () => {
+    if (!characterList.length||!attributeList.length) return;
+    adminAkGame={
+      sessionId:generateSessionId(),
+      probs:Object.fromEntries(characterList.map((c)=>[c.name, 1/characterList.length])),
+      askedAttrKeys:{}, questionCount:0, answerHistory:[],
+      snapshots:[], currentQuestion:null, guessedCharName:"",
+      alreadyGuessed:new Set(), maxQuestions:MAX_QUESTIONS,
+    };
+    $("admin-ak-start-area").classList.add("H");
+    $("admin-ak-result-area").classList.add("H");
+    $("admin-ak-game-area").classList.remove("H");
+    showAdminAkQuestion();
+  };
+
+  /** game変数を一時的にadminAkGameで置き換えてエンジン関数を流用 */
+  function withAdminAk(fn) {
+    const saved=game; game=adminAkGame; const ret=fn(); adminAkGame=game; game=saved; return ret;
+  }
+
+  function showAdminAkQuestion() {
+    withAdminAk(() => {
+      const question=pickBestQuestion();
+      if (!question||game.questionCount>=game.maxQuestions) { showAdminAkResult(); return; }
+      game.currentQuestion=question;
+      $("admin-ak-progress-bar").style.width=(game.questionCount/game.maxQuestions*100)+"%";
+      $("admin-ak-question-num").textContent=game.questionCount+1;
+      $("admin-ak-question-max").textContent=game.maxQuestions;
+      $("admin-ak-question-text").textContent=question.q;
+      const top3=getTopCharacters(3);
+      $("admin-ak-top3-display").innerHTML=top3.map((c,i)=>
+        `<div class="ci${i===0?" tp":""}">${esc(c.emoji)} ${esc(c.name)} ${(c.prob*100).toFixed(0)}%</div>`
+      ).join("");
+      $("btn-admin-ak-back").disabled=!game.snapshots.length;
+    });
+  }
+
+  $("admin-ak-answer-buttons").onclick = (e) => {
+    const btn=e.target.closest(".an"); if (!btn) return;
+    const answer=btn.dataset.v, question=adminAkGame.currentQuestion;
+    adminAkGame.snapshots.push({
+      probs:{...adminAkGame.probs},
+      askedAttrKeys:{...adminAkGame.askedAttrKeys},
+      questionCount:adminAkGame.questionCount,
+      roundStartCount:adminAkGame.roundStartCount,
+      answerHistory:[...adminAkGame.answerHistory],
+    });
+    adminAkGame.askedAttrKeys[question.k]=true;
+    adminAkGame.questionCount++;
+    adminAkGame.answerHistory.push({attrKey:question.k,answer});
+    let doGuess;
+    withAdminAk(()=>{ updateProbabilities(question.k,answer); doGuess=shouldGuessNow(); });
+    doGuess?showAdminAkResult():showAdminAkQuestion();
+  };
+
+  $("btn-admin-ak-back").onclick = () => {
+    if (!adminAkGame.snapshots.length) return;
+    const snap=adminAkGame.snapshots.pop();
+    adminAkGame.probs=snap.probs; adminAkGame.askedAttrKeys=snap.askedAttrKeys;
+    adminAkGame.questionCount=snap.questionCount; adminAkGame.roundStartCount=snap.roundStartCount??0;
+    adminAkGame.answerHistory=snap.answerHistory;
+    showAdminAkQuestion();
+  };
+
+  function showAdminAkResult() {
+    $("admin-ak-game-area").classList.add("H");
+    $("admin-ak-result-area").classList.remove("H");
+
+    const topChars=withAdminAk(()=>getTopCharacters(7));
+    const top=topChars[0];
+    adminAkGame.guessedCharName=top.name;
+
+    $("admin-ak-result-emoji").textContent=top.emoji;
+    $("admin-ak-result-name").textContent=top.name;
+    $("admin-ak-result-part").textContent=PART_NAMES[top.part]||"";
+    $("admin-ak-result-desc").textContent=top.desc;
+
+    const pct=Math.min(99,Math.round(top.prob*100));
+    $("admin-ak-confidence-pct").textContent=pct+"%";
+    const bar=$("admin-ak-confidence-bar");
+    bar.style.width="0%";
+    bar.style.background=pct>70?"linear-gradient(90deg,#5efc8d,#20e8a0)":pct>40?"linear-gradient(90deg,#f7d94e,#e8a020)":"linear-gradient(90deg,#fc5e5e,#e84020)";
+    setTimeout(()=>{bar.style.width=pct+"%";},100);
+
+    const diffKey=adminAkGame.questionCount<=8?"easy":adminAkGame.questionCount<=15?"med":"hard";
+    const diffLabel=adminAkGame.questionCount<=8?"余裕":adminAkGame.questionCount<=15?"普通":"苦戦";
+    $("admin-ak-result-badge").innerHTML=`${adminAkGame.questionCount}問 <span class="diff-badge diff-${diffKey}">${diffLabel}</span>`;
+
+    $("admin-ak-candidates").innerHTML=topChars.slice(1,6).map((c)=>
+      `<div class="fb" data-char-name="${esc(c.name)}">${esc(c.emoji)} ${esc(c.name)}</div>`
+    ).join("");
+
+    $("admin-ak-check-area").style.display="block";
+    ["admin-ak-wrong-area","admin-ak-search-area"].forEach((id)=>$(id).classList.add("H"));
+    $("admin-ak-feedback-msg").textContent="";
+  }
+
+  /** 正解ボタン：今回の全回答を属性としてサーバーにパッチ保存 */
+  async function adminAkSaveCorrect(charName) {
+    const newAttrs={};
+    adminAkGame.answerHistory.forEach(({attrKey,answer})=>{
+      const val={yes:1,py:0.7,pn:0.3,no:0}[answer]; // uk（わからない）はサーバー保存しない
+      if (val !== undefined) newAttrs[attrKey]=val;
+    });
+    $("admin-ak-feedback-msg").innerHTML='<span style="color:#888">記録中...</span>';
+
+    // admin_patch_attrs: 今回分だけ上書き、他は保持
+    let finalResult=await supabaseRpc("admin_patch_attrs",{p_pass_hash:adminPasswordHash,p_name:charName,p_attrs:newAttrs});
+    if (!finalResult||finalResult==="ERROR") {
+      // fallback: 既存を取得してマージ
+      const existing=await supabaseGet(`characters?name=eq.${encodeURIComponent(charName)}&select=attrs`);
+      const merged={...(existing?.[0]?.attrs||{}), ...newAttrs};
+      finalResult=await supabaseRpc("admin_update_attrs",{p_pass_hash:adminPasswordHash,p_name:charName,p_attrs:merged});
+    }
+    // ローカルにも5票分として記録
+    if (!learnData[charName]) learnData[charName]={};
+    adminAkGame.answerHistory.forEach(({attrKey,answer})=>{
+      if (!learnData[charName][attrKey]) learnData[charName][attrKey]={};
+      learnData[charName][attrKey][answer]=(learnData[charName][attrKey][answer]||0)+5;
+    });
+    saveToStorage("learn",learnData); applyLocalLearning();
+    const lc=characterList.find((c)=>c.name===charName); if (lc) Object.assign(lc.a,newAttrs);
+
+    $("admin-ak-check-area").style.display="none";
+    $("admin-ak-feedback-msg").innerHTML=(finalResult==="OK")
+      ?`<span style="color:#5efc8d">✅ ${Object.keys(newAttrs).length}個の属性を記録しました！</span>`
+      :`<span style="color:#fcb85e">ローカル記録済み（サーバー: ${finalResult||"エラー"}）</span>`;
+  }
+
+  $("btn-admin-ak-correct").onclick = () => {
+    adminAkSaveCorrect(adminAkGame.guessedCharName);
+  };
+
+  $("btn-admin-ak-wrong").onclick = () => {
+    $("admin-ak-check-area").style.display="none";
+    adminAkGame.alreadyGuessed.add(adminAkGame.guessedCharName);
+    $("admin-ak-wrong-area").classList.remove("H");
+    $("admin-ak-feedback-msg").innerHTML='<span style="color:#fcb85e">正解を教えてください 👇</span>';
+  };
+
+  // 候補リストから正解を選ぶ
+  $("admin-ak-candidates").onclick = (e) => {
+    const btn=e.target.closest(".fb"); if (!btn) return;
+    const name=btn.dataset.charName;
+    $("admin-ak-wrong-area").classList.add("H");
+    adminAkGame.guessedCharName=name;
+    // 結果表示を選んだキャラに更新してから保存
+    const ch=characterList.find((c)=>c.name===name);
+    if (ch) {
+      $("admin-ak-result-emoji").textContent=ch.emoji;
+      $("admin-ak-result-name").textContent=ch.name;
+      $("admin-ak-result-part").textContent=PART_NAMES[ch.part]||"";
+      $("admin-ak-result-desc").textContent=ch.desc;
+    }
+    adminAkSaveCorrect(name);
+  };
+
+  $("btn-admin-ak-more-q").onclick = () => {
+    $("admin-ak-wrong-area").classList.add("H");
+    $("admin-ak-feedback-msg").textContent="";
+    adminAkGame.roundStartCount=adminAkGame.questionCount;
+    adminAkGame.maxQuestions=adminAkGame.questionCount+EXTRA_QUESTIONS;
+    $("admin-ak-result-area").classList.add("H");
+    $("admin-ak-game-area").classList.remove("H");
+    showAdminAkQuestion();
+  };
+
+  $("btn-admin-ak-search").onclick = () => {
+    $("admin-ak-wrong-area").classList.add("H");
+    $("admin-ak-search-area").classList.remove("H");
+    $("admin-ak-search-input").value="";
+    $("admin-ak-search-results").innerHTML="";
+  };
+
+  $("admin-ak-search-input").oninput = () => {
+    const q=$("admin-ak-search-input").value.trim().toLowerCase();
+    if (!q) { $("admin-ak-search-results").innerHTML=""; return; }
+    $("admin-ak-search-results").innerHTML=
+      characterList.filter((c)=>c.name.toLowerCase().includes(q)).slice(0,8)
+        .map((c)=>`<div class="sri" data-char-name="${esc(c.name)}">${esc(c.emoji)} ${esc(c.name)}</div>`)
+        .join("") ||
+      '<div style="text-align:center;font-size:.73em;color:#666;padding:6px">見つかりません</div>';
+  };
+
+  $("admin-ak-search-results").onclick = (e) => {
+    const item=e.target.closest(".sri"); if (!item) return;
+    const name=item.dataset.charName;
+    $("admin-ak-search-area").classList.add("H");
+    adminAkGame.guessedCharName=name;
+    const ch=characterList.find((c)=>c.name===name);
+    if (ch) {
+      $("admin-ak-result-emoji").textContent=ch.emoji;
+      $("admin-ak-result-name").textContent=ch.name;
+      $("admin-ak-result-part").textContent=PART_NAMES[ch.part]||"";
+      $("admin-ak-result-desc").textContent=ch.desc;
+    }
+    adminAkSaveCorrect(name);
+  };
+
+  $("btn-admin-ak-restart").onclick = () => { $("btn-admin-ak-start").click(); };
+
+  // ============================================================
+  // 17. 管理者画面 — リクエスト管理
+  // ============================================================
+
+  $$(".admin-req-tab").forEach((tab) => {
+    tab.onclick = () => {
+      $$(".admin-req-tab").forEach((t)=>t.classList.remove("a")); tab.classList.add("a");
+      $$(".admin-req-area").forEach((s)=>s.classList.add("H"));
+      $({"char-req":"admin-char-requests-area","feedback-req":"admin-feedback-requests-area"}[tab.dataset.tab]).classList.remove("H");
+    };
+  });
+
+  async function loadAdminRequests() {
+    $("admin-char-requests-list").innerHTML='<div style="text-align:center;font-size:.74em;color:#888;padding:8px">読み込み中...</div>';
+    let rawReqs=await supabaseRpc("admin_get_pending_requests",{p_pass_hash:adminPasswordHash});
+    if (!Array.isArray(rawReqs)) rawReqs=await supabaseRpc("get_pending_requests");   // SQL未実行なら属性なしで表示
+    // 既に承認/却下済みのものをフィルタリング（サーバーの反映遅延対策）
+    const charReqs=Array.isArray(rawReqs) ? rawReqs.filter((r)=>!adminProcessedRequests.has(r.char_name)) : [];
+    if (!charReqs.length) {
+      $("admin-char-requests-list").innerHTML='<div style="text-align:center;font-size:.74em;color:#666;padding:8px">なし</div>';
+    } else {
+      buildPartAttrMap();
+      const partKeys=new Set([...Object.values(partAttrMap),spinoffAttrKey]);
+      const reqAttrsMap={};   // 承認時にローカルのキャラ一覧へ反映するため保持
+      const attrIcon=(v)=>v>=0.85?"⭕":v>=0.55?"🔵":v>0.45?"❓":v>0.15?"🟠":"❌";
+      const attrBlock=(r)=>{
+        const clean={};
+        Object.entries(r.attrs||{}).forEach(([k,v])=>{ if (typeof v==="number" && attributeList.some((x)=>x.k===k)) clean[k]=v; });
+        reqAttrsMap[r.char_name]=clean;
+        const shown=Object.entries(clean).filter(([k])=>!partKeys.has(k));
+        if (!shown.length) return '<div style="font-size:.68em;color:#666;margin:2px 0">属性: 未入力（承認後に「キャラ編集」で設定できます）</div>';
+        const chips=shown.map(([k,v])=>`<span>${esc(attributeList.find((x)=>x.k===k).l)} ${attrIcon(v)}</span>`).join("");
+        return `<details class="adm-req-attrs"><summary>📊 利用者が答えた属性 ${shown.length}件（自己申告）</summary><div class="adm-req-attrgrid">${chips}</div></details>`;
+      };
+      $("admin-char-requests-list").innerHTML=charReqs.map((r)=>
+        `<div class="adm-req"
+          data-char-name="${esc(r.char_name)}"
+          data-part="${Number(r.part)||0}"
+          data-note="${esc(r.note||"")}"
+          data-emoji="${esc(r.emoji||"")}">
+          <div class="adm-req-top">
+            <span class="adm-req-nm">${esc(r.emoji||"❓")} ${esc(r.char_name)}</span>
+            <span class="rbg rpd">🗳️ ${Number(r.vote_count)||1}票</span>
+          </div>
+          <div class="adm-req-info">${r.part?PART_NAMES[r.part]+" / ":""}${esc(r.note||"")}</div>
+          ${attrBlock(r)}
+          <div class="adm-req-btns">
+            <button class="bt bs bg admin-char-req-approve">✅ 承認</button>
+            <button class="bt bs bd admin-char-req-reject">❌ 却下</button>
+          </div>
+        </div>`
+      ).join("");
+      // 承認・却下ボタンのイベントをまとめて登録
+      function bindRequestButtons() {
+        $$(".admin-char-req-approve").forEach((btn) => {
+          btn.onclick=async()=>{
+            const row=btn.closest(".adm-req");
+            const name=row.dataset.charName;
+            const part=parseInt(row.dataset.part)||0;
+            const note=row.dataset.note||"";
+            row.querySelectorAll("button").forEach((b)=>{b.disabled=true;});
+            btn.textContent="処理中...";
+            const res=await supabaseRpc("admin_approve_request",{p_pass_hash:adminPasswordHash,p_char_name:name});
+            if (res==="OK" || res===true) {
+              adminProcessedRequests.add(name);
+              const emoji=row.dataset.emoji||"❓";
+              const a=Object.assign({},reqAttrsMap[name]||{});   // 利用者が答えた属性（未入力なら空＝未設定扱い）
+              const newChar={name,part,emoji,desc:note,a};
+              const idx=characterList.findIndex((c)=>c.name===name);
+              if (idx>=0) characterList[idx]=newChar; else characterList.push(newChar);
+              buildCharMap(); updateHeaderDisplay();
+              row.innerHTML=`<div style="color:#5efc8d;font-size:.85em">✅ ${esc(emoji)} ${esc(name)} を承認・追加しました</div>`+
+                `<div style="color:#888;font-size:.72em">${part?"第"+part+"部 / ":""}${esc(note)||"補足なし"} / 属性 ${Object.keys(a).length}件を反映</div>`;
+            } else {
+              const errMsg=getRpcErrorMsg(res);
+              const info=document.createElement("div");
+              info.style.cssText="color:#fc5e5e;font-size:.78em;margin-bottom:4px";
+              info.textContent="❌ 承認失敗: "+errMsg;
+              row.insertBefore(info, row.querySelector(".adm-req-btns"));
+              row.querySelectorAll("button").forEach((b)=>{b.disabled=false;});
+              btn.textContent="✅ 承認";
+            }
+          };
+        });
+        $$(".admin-char-req-reject").forEach((btn) => {
+          btn.onclick=async()=>{
+            const row=btn.closest(".adm-req");
+            const name=row.dataset.charName;
+            row.querySelectorAll("button").forEach((b)=>{b.disabled=true;});
+            btn.textContent="処理中...";
+            const res=await supabaseRpc("admin_reject_request",{p_pass_hash:adminPasswordHash,p_char_name:name});
+            if (res==="OK" || res===true) {
+              adminProcessedRequests.add(name);
+              row.style.opacity="0.4";
+              row.querySelector(".adm-req-btns").innerHTML='<span style="color:#888;font-size:.8em">🗑️ 却下済み</span>';
+            } else {
+              const errMsg=getRpcErrorMsg(res);
+              const info=document.createElement("div");
+              info.style.cssText="color:#fc5e5e;font-size:.78em;margin-bottom:4px";
+              info.textContent="❌ 却下失敗: "+errMsg;
+              row.insertBefore(info, row.querySelector(".adm-req-btns"));
+              row.querySelectorAll("button").forEach((b)=>{b.disabled=false;});
+              btn.textContent="❌ 却下";
+            }
+          };
+        });
+      }
+      bindRequestButtons();
+    }
+    $("admin-feedback-requests-list").innerHTML='<div style="text-align:center;font-size:.74em;color:#888;padding:8px">読み込み中...</div>';
+    const rawFbs=await supabaseRpc("get_pending_question_requests");
+    // 処理済みをフィルタリング（サーバー反映遅延対策）
+    const feedbacks=Array.isArray(rawFbs)?rawFbs.filter((r)=>!adminProcessedRequests.has("fb:"+r.id)):[];
+    if (!feedbacks.length) {
+      $("admin-feedback-requests-list").innerHTML='<div style="text-align:center;font-size:.74em;color:#666;padding:8px">なし</div>';
+    } else {
+      $("admin-feedback-requests-list").innerHTML=feedbacks.map((r)=>
+        `<div class="adm-req" data-req-id="${r.id}" data-locked="0">
+          <div class="adm-req-nm">${esc(r.question_text)}</div>
+          <div class="adm-req-info" style="white-space:pre-wrap">${esc(r.note||"")}</div>
+          <div class="adm-req-btns" style="gap:6px">
+            <button class="bt bs admin-fb-lock" data-req-id="${r.id}" title="ロック：間違って確認済みにしないよう保護">🔓 ロック</button>
+            <button class="bt bs bd admin-feedback-req-dismiss" data-req-id="${r.id}">✅ 確認済み</button>
+          </div>
+        </div>`
+      ).join("");
+      // ロックボタン
+      $$(".admin-fb-lock").forEach((btn)=>{
+        btn.onclick=()=>{
+          const row=btn.closest(".adm-req");
+          const locked=row.dataset.locked==="1";
+          row.dataset.locked=locked?"0":"1";
+          btn.textContent=locked?"🔓 ロック":"🔒 ロック中";
+          btn.style.background=locked?"":"#f7d94e";
+          btn.style.color=locked?"":"#111";
+          const dismissBtn=row.querySelector(".admin-feedback-req-dismiss");
+          dismissBtn.disabled=!locked;
+        };
+      });
+      // 確認済みボタン
+      $$(".admin-feedback-req-dismiss").forEach((btn) => {
+        btn.onclick=async()=>{
+          const row=btn.closest(".adm-req");
+          const id=btn.dataset.reqId; // 文字列のまま渡す（bigint型対応）
+          const text=row.querySelector(".adm-req-nm").textContent;
+          if (!confirm(`この内容を確認済みにします。
+
+「${text.slice(0,60)}${text.length>60?"…":""}」
+
+本当によいですか？`)) return;
+          btn.disabled=true; btn.textContent="処理中...";
+          const res=await supabaseRpc("admin_dismiss_question_request",{p_pass_hash:adminPasswordHash,p_id:id});
+          if (res==="OK"||res===true) {
+            adminProcessedRequests.add("fb:"+id);
+            row.style.opacity="0.4";
+            row.querySelector(".adm-req-btns").innerHTML='<span style="color:#888;font-size:.8em">✅ 確認済み</span>';
+          } else {
+            const errMsg=getRpcErrorMsg(res);
+            const info=document.createElement("div");
+            info.style.cssText="color:#fc5e5e;font-size:.78em;margin-bottom:4px";
+            info.textContent="❌ 失敗: "+errMsg;
+            row.insertBefore(info,row.querySelector(".adm-req-btns"));
+            btn.disabled=false; btn.textContent="✅ 確認済み";
+          }
+        };
+      });
+    }
+  }
+
+  // ============================================================
+  // 18. 管理者画面 — キャラ一覧・編集
+  // ============================================================
+
+  let adminCharCache = [];
+
+  async function loadAdminCharList() {
+    const chars=await supabaseRpc("get_all_characters"); if (!chars) return;
+    adminCharCache=chars; renderAdminCharList(""); $("admin-char-edit-area").classList.add("H");
+  }
+
+  $("admin-char-list-search").oninput = () => renderAdminCharList($("admin-char-list-search").value.trim().toLowerCase());
+
+  $("btn-admin-char-sort-missing").onclick = () => {
+    adminCharSortMode = adminCharSortMode === "missing" ? "part" : "missing";
+    $("btn-admin-char-sort-missing").textContent = adminCharSortMode === "missing" ? "📋 部順" : "⚠️ 未設定順";
+    renderAdminCharList($("admin-char-list-search").value.trim().toLowerCase());
+  };
+
+  $("btn-admin-backup").onclick = () => {
+    const data = {
+      characters: adminCharCache,
+      attributes: attributeList,
+      exported_at: new Date().toISOString()
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `jojo-akinator-backup-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  let adminCharSortMode = "part"; // "part" | "missing"
+
+  function countMissingAttrs(charAttrs) {
+    const attrs = charAttrs || {};
+    return attributeList.filter((a) => {
+      const v = attrs[a.k];
+      return v === undefined; // 0.5（❓どちらでもない）は設定済み扱い
+    }).length;
+  }
+
+  function renderAdminCharList(query) {
+    const filtered=[...adminCharCache].filter((c)=>!query||c.name.toLowerCase().includes(query));
+    if (adminCharSortMode === "missing") {
+      filtered.sort((a,b) => countMissingAttrs(b.attrs) - countMissingAttrs(a.attrs));
+    } else {
+      filtered.sort((a,b) => (a.part||99)-(b.part||99));
+    }
+    const totalAttrs = attributeList.length;
+    $("admin-char-list").innerHTML=filtered.map((c)=>{
+      const missing = countMissingAttrs(c.attrs);
+      const pct = Math.round((totalAttrs - missing) / totalAttrs * 100);
+      const badgeColor = missing === 0 ? "#5efc8d" : missing <= 10 ? "#fcb85e" : "#fc5e5e";
+      const badgeTitle = `未設定: ${missing}/${totalAttrs} (完成度${pct}%)`;
+      return `<div class="adm-ch${c.is_active?"":" adm-ch-inactive"}" data-char-name="${esc(c.name)}">
+        <span>${esc(c.emoji||"❓")}</span>
+        <span class="adm-ch-nm">${esc(c.name)}</span>
+        <span class="adm-ch-pt">${PART_NAMES[c.part]||""}</span>
+        <span class="adm-ch-missing" title="${badgeTitle}" style="font-size:.7em;padding:1px 5px;border-radius:8px;background:${badgeColor};color:#111;font-weight:700;min-width:28px;text-align:center">${missing > 0 ? missing : "✓"}</span>
+        <button class="adm-ch-del" data-char-name="${esc(c.name)}">🗑️</button>
+      </div>`;
+    }).join("");
+    $$(".adm-ch-nm").forEach((el) => {
+      el.onclick=()=>openCharEditor(el.closest(".adm-ch").dataset.charName);
+    });
+    $$(".adm-ch-del").forEach((btn) => {
+      btn.onclick=async(e)=>{
+        e.stopPropagation();
+        if (!confirm(`「${btn.dataset.charName}」を削除しますか？`)) return;
+        const res=await supabaseRpc("admin_deactivate_character",{p_pass_hash:adminPasswordHash,p_name:btn.dataset.charName});
+        if (res==="OK") {
+          btn.closest(".adm-ch").style.opacity=".2";
+          btn.closest(".adm-ch").style.pointerEvents="none";
+          characterList=characterList.filter((c)=>c.name!==btn.dataset.charName);
+          updateHeaderDisplay();
+        }
+      };
+    });
+  }
+
+  function openCharEditor(name) {
+    const ch=adminCharCache.find((x)=>x.name===name); if (!ch) return;
+    $("edit-char-title-name").textContent=name;
+    $("admin-char-edit-area").dataset.charName=name;
+    $("edit-char-name").value=ch.name;
+    $("edit-char-emoji").value=ch.emoji||"";
+    $("edit-char-part").value=ch.part??"";
+    $("edit-char-desc").value=ch.description||"";
+    $("char-edit-status-message").textContent="";
+    $("admin-char-edit-area").classList.remove("H");
+    buildAttrButtonList(attributeList,"edit-char-attr-list","edit-char-attr-search",ch.attrs||{});
+  }
+
+  $("btn-save-char-edit").onclick = async () => {
+    const origName=$("admin-char-edit-area").dataset.charName;
+    const newName=$("edit-char-name").value.trim(); if (!newName) return;
+    const savedAttrs=(adminCharCache.find((x)=>x.name===origName)?.attrs)||{};
+    const attrs={...savedAttrs}; // 既存の値をそのままベースにする
+    Object.assign(attrs,collectAttrValues("edit-char-attr-list"));
+    $("char-edit-status-message").innerHTML='<span style="color:#888">保存中...</span>';
+    if (newName!==origName) {
+      const r=await supabaseRpc("admin_rename_character",{p_pass_hash:adminPasswordHash,p_old_name:origName,p_new_name:newName});
+      if (r!=="OK") { $("char-edit-status-message").innerHTML=`<span style="color:#fc5e5e">${r||"リネーム失敗"}</span>`; return; }
+      $("admin-char-edit-area").dataset.charName=newName;
+      $("edit-char-title-name").textContent=newName;
+      const lc=characterList.find((x)=>x.name===origName); if (lc) lc.name=newName;
+    }
+    await supabaseRpc("admin_update_character",{p_pass_hash:adminPasswordHash,p_name:newName,p_part:parseInt($("edit-char-part").value)||0,p_emoji:$("edit-char-emoji").value.trim()||"❓",p_description:$("edit-char-desc").value.trim()});
+    const res=await supabaseRpc("admin_update_attrs",{p_pass_hash:adminPasswordHash,p_name:newName,p_attrs:attrs});
+    if (res==="OK") {
+      $("char-edit-status-message").innerHTML='<span style="color:#5efc8d">✅ 保存しました！</span>';
+      const lc=characterList.find((x)=>x.name===newName);
+      if (lc) { lc.part=parseInt($("edit-char-part").value)||0; lc.emoji=$("edit-char-emoji").value.trim()||"❓"; lc.desc=$("edit-char-desc").value.trim(); Object.assign(lc.a,attrs); }
+    } else { $("char-edit-status-message").innerHTML=`<span style="color:#fc5e5e">${res||"エラー"}</span>`; }
+  };
+
+  $("btn-close-char-edit").onclick = () => $("admin-char-edit-area").classList.add("H");
+
+  // ============================================================
+  // 19. 管理者画面 — 質問管理
+  // ============================================================
+
+  let bulkEditCharList = [];
+
+  async function loadAdminQuestions() {
+    let allAttrs=[];
+    try {
+      const fetched=await fetchAllAttrs();
+      allAttrs=fetched.map((a)=>({k:a.key,q:a.question,l:a.label,i:Number(a.info),active:a.is_active}));
+    } catch {}
+    allAttrs.sort((x,y)=>(y.active-x.active)); // 有効を上、無効を下に
+    $("question-toggle-status").innerHTML=attrToggleSupported?"":'<span style="color:#fc5e5e">⚠️ 有効/無効の切替には、Supabaseで add_attr_toggle.sql の実行が必要です</span>';
+    try {
+      const chars=await supabaseRpc("get_all_characters");
+      if (chars) bulkEditCharList=chars.filter((c)=>c.is_active);
+    } catch {}
+
+    $("admin-question-list").innerHTML=allAttrs.map((a)=>
+      `<div class="adm-qi${a.active?"":" adm-qi-off"}" data-attr-key="${a.k}">
+        <span class="adm-qi-nm">${a.l} — ${a.q} <span style="color:#f7d94e;font-size:.8em">[${a.i}]</span></span>
+        <div class="adm-qi-act">
+          <button class="adm-qi-btn question-edit-btn" data-k="${a.k}" data-q="${a.q}" data-l="${a.l}" data-i="${a.i}">✏️</button>
+          <button class="adm-qi-btn question-bulk-btn" data-k="${a.k}" data-l="${a.l}">📋</button>
+          <button class="adm-qi-tgl question-toggle-btn${a.active?"":" off"}" data-k="${a.k}" data-active="${a.active?1:0}"${attrToggleSupported?"":" disabled"}>${a.active?"✅ 有効":"🚫 無効"}</button>
+        </div>
+      </div>`
+    ).join("");
+    const updateQuestionSummary=()=>{
+      const rows=$$("#admin-question-list .adm-qi");
+      const on=[...rows].filter((r)=>!r.classList.contains("adm-qi-off")).length;
+      $("question-active-summary").textContent=`有効 ${on} / 無効 ${rows.length-on}`;
+    };
+    updateQuestionSummary();
+
+    $$(".question-edit-btn").forEach((btn) => {
+      btn.onclick=()=>{
+        $("question-edit-area").classList.remove("H"); $("bulk-attr-edit-area").classList.add("H");
+        $("edit-question-key-label").textContent=btn.dataset.k;
+        $("edit-question-text").value=btn.dataset.q;
+        $("edit-question-label-input").value=btn.dataset.l;
+        $("edit-question-importance").value=btn.dataset.i||"1.5";
+        $("question-edit-status-message").textContent="";
+        $("question-edit-area").dataset.attrKey=btn.dataset.k;
+      };
+    });
+    $$(".question-bulk-btn").forEach((btn) => { btn.onclick=()=>openBulkAttrEditor(btn.dataset.k,btn.dataset.l); });
+    $$(".question-toggle-btn").forEach((btn) => {
+      btn.onclick=async()=>{
+        const row=btn.closest(".adm-qi");
+        const key=btn.dataset.k;
+        const nextActive=btn.dataset.active!=="1";
+        btn.disabled=true;
+        const res=await supabaseRpc("admin_set_attr_active",{p_pass_hash:adminPasswordHash,p_key:key,p_active:nextActive});
+        btn.disabled=false;
+        if (res==="OK") {
+          btn.dataset.active=nextActive?"1":"0";
+          btn.textContent=nextActive?"✅ 有効":"🚫 無効";
+          btn.classList.toggle("off",!nextActive);
+          row.classList.toggle("adm-qi-off",!nextActive);
+          if (nextActive) {
+            const ed=row.querySelector(".question-edit-btn").dataset;
+            if (!attributeList.some((a)=>a.k===key)) attributeList.push({k:key,q:ed.q,l:ed.l,i:Number(ed.i)||1.5});
+          } else {
+            attributeList=attributeList.filter((a)=>a.k!==key);
+          }
+          $("question-toggle-status").textContent="";
+          updateQuestionSummary();
+        } else {
+          $("question-toggle-status").innerHTML='<span style="color:#fc5e5e">❌ 切替失敗: '+getRpcErrorMsg(res)+'</span>';
+        }
+      };
+    });
+
+    $("question-list-search").oninput=()=>{
+      const q=$("question-list-search").value.trim().toLowerCase();
+      $("admin-question-list").querySelectorAll(".adm-qi").forEach((row)=>{
+        row.style.display=!q||row.querySelector(".adm-qi-nm").textContent.toLowerCase().includes(q)?"":"none";
+      });
+    };
+
+    $("question-edit-area").classList.add("H"); $("bulk-attr-edit-area").classList.add("H");
+    $("new-question-status-message").textContent="";
+    $("new-question-key-input").value=$("new-question-text-input").value=$("new-question-label-input").value="";
+    $("new-question-importance-input").value="1.5";
+    $("new-question-key-duplicate-warning").classList.add("H");
+  }
+
+  function openBulkAttrEditor(attrKey,label) {
+    $("question-edit-area").classList.add("H"); $("bulk-attr-edit-area").classList.remove("H");
+    $("bulk-attr-label").textContent=label+" ("+attrKey+")";
+    $("bulk-attr-edit-area").dataset.attrKey=attrKey;
+    $("bulk-attr-status-message").textContent=""; $("bulk-attr-char-search").value="";
+    renderBulkAttrCharList(attrKey,"");
+    $("bulk-attr-char-search").oninput=()=>renderBulkAttrCharList(attrKey,$("bulk-attr-char-search").value.trim().toLowerCase());
+  }
+
+  function renderBulkAttrCharList(attrKey,query) {
+    const filtered=query?bulkEditCharList.filter((c)=>c.name.toLowerCase().includes(query)):bulkEditCharList;
+    $("bulk-attr-char-list").innerHTML=filtered.map((c)=>{
+      const v=(c.attrs||{})[attrKey];
+      const isMiddle=(v===0.5);
+      const set=(v!==undefined && !isMiddle);
+      return `<div class="bci" data-char-name="${esc(c.name)}">
+        <span>${esc(c.emoji||"❓")}</span>
+        <span class="bci-nm">${esc(c.name)}</span>
+        <span class="bci-cur">${v!==undefined?v.toFixed(2):"-"}</span>
+        <div class="bci-abs">
+          <button class="ab${set&&v>=0.8?" ay":""}"         data-v="1">⭕</button>
+          <button class="ab${set&&v>0.5&&v<0.8?" ap":""}"   data-v=".7">🔵</button>
+          <button class="ab${set&&v>0.2&&v<0.5?" am":""}"   data-v=".3">🟠</button>
+          <button class="ab${set&&v<=0.2?" an2":""}"        data-v="0">❌</button>
+          <button class="ab${isMiddle?" aq":""}"            data-v=".5" title="どちらでもない">❓</button>
+        </div>
+      </div>`;
+    }).join("");
+    $("bulk-attr-char-list").onclick=(e)=>{
+      const btn=e.target.closest(".ab"); if (!btn) return;
+      const row=btn.closest(".bci");
+      row.querySelectorAll(".ab").forEach((b)=>b.classList.remove("ay","ap","am","an2","aq"));
+      btn.classList.add({1:"ay",".7":"ap",".3":"am",0:"an2",".5":"aq"}[btn.dataset.v]);
+      row.querySelector(".bci-cur").textContent=btn.dataset.v;
+    };
+  }
+
+  $("btn-save-bulk-attr").onclick = async () => {
+    const attrKey=$("bulk-attr-edit-area").dataset.attrKey, values={};
+    $("bulk-attr-char-list").querySelectorAll(".bci").forEach((row)=>{
+      const sel=row.querySelector(".ab.ay,.ab.ap,.ab.am,.ab.an2,.ab.aq");
+      if (sel) values[row.dataset.charName]=parseFloat(sel.dataset.v);
+    });
+    if (!Object.keys(values).length) { $("bulk-attr-status-message").innerHTML='<span style="color:#fc5e5e">変更がありません</span>'; return; }
+    $("bulk-attr-status-message").innerHTML='<span style="color:#888">保存中...</span>';
+    const res=await supabaseRpc("admin_bulk_set_attr",{p_pass_hash:adminPasswordHash,p_attr_key:attrKey,p_char_values:values});
+    if (res==="OK") {
+      $("bulk-attr-status-message").innerHTML=`<span style="color:#5efc8d">✅ ${Object.keys(values).length}キャラ更新しました！</span>`;
+      Object.entries(values).forEach(([name,val])=>{
+        const lc=characterList.find((x)=>x.name===name); if (lc) lc.a[attrKey]=val;
+        const bc=bulkEditCharList.find((x)=>x.name===name); if (bc) { if (!bc.attrs) bc.attrs={}; bc.attrs[attrKey]=val; }
+      });
+    } else { $("bulk-attr-status-message").innerHTML=`<span style="color:#fc5e5e">${res||"エラー"}</span>`; }
+  };
+
+  $("btn-close-bulk-attr").onclick = () => $("bulk-attr-edit-area").classList.add("H");
+
+  $("btn-save-question-edit").onclick = async () => {
+    const key=$("question-edit-area").dataset.attrKey;
+    const qText=$("edit-question-text").value.trim(), label=$("edit-question-label-input").value.trim();
+    const imp=parseFloat($("edit-question-importance").value);
+    if (!qText||!label) { $("question-edit-status-message").innerHTML='<span style="color:#fc5e5e">入力してください</span>'; return; }
+    if (isNaN(imp)||imp<0.1||imp>3) { $("question-edit-status-message").innerHTML='<span style="color:#fc5e5e">重要度は0.1〜3.0で入力</span>'; return; }
+    const res=await supabaseRpc("admin_update_attr",{p_pass_hash:adminPasswordHash,p_key:key,p_question:qText,p_label:label,p_info:imp});
+    if (res==="OK") {
+      $("question-edit-status-message").innerHTML='<span style="color:#5efc8d">✅ 保存！</span>';
+      const a=attributeList.find((x)=>x.k===key); if (a) { a.q=qText; a.l=label; a.i=imp; }
+      loadAdminQuestions();
+    } else { $("question-edit-status-message").innerHTML=`<span style="color:#fc5e5e">${res||"エラー"}</span>`; }
+  };
+
+  $("btn-close-question-edit").onclick = () => $("question-edit-area").classList.add("H");
+
+  $("new-question-key-input").oninput = () => {
+    attributeList.find((a)=>a.k===$("new-question-key-input").value.trim())
+      ? ($("new-question-key-duplicate-warning").classList.remove("H"), $("new-question-key-duplicate-warning").textContent="⚠️ このキーは既に存在します")
+      : $("new-question-key-duplicate-warning").classList.add("H");
+  };
+
+  $("btn-submit-new-question").onclick = async () => {
+    const key=$("new-question-key-input").value.trim();
+    const qText=$("new-question-text-input").value.trim(), label=$("new-question-label-input").value.trim();
+    const imp=parseFloat($("new-question-importance-input").value);
+    if (!key||!qText||!label) { $("new-question-status-message").innerHTML='<span style="color:#fc5e5e">全項目入力してください</span>'; return; }
+    if (!/^[a-zA-Z0-9_]+$/.test(key)) { $("new-question-status-message").innerHTML='<span style="color:#fc5e5e">キーは英数字とアンダースコアのみです</span>'; return; }
+    if (attributeList.find((a)=>a.k===key)) { $("new-question-status-message").innerHTML='<span style="color:#fc5e5e">このキーは既に存在します</span>'; return; }
+    if (isNaN(imp)||imp<0.1||imp>3) { $("new-question-status-message").innerHTML='<span style="color:#fc5e5e">重要度は0.1〜3.0で入力</span>'; return; }
+    const res=await supabaseRpc("admin_add_attr",{p_pass_hash:adminPasswordHash,p_key:key,p_question:qText,p_label:label,p_info:imp});
+    if (res==="OK") {
+      $("new-question-status-message").innerHTML=`<span style="color:#5efc8d">✅「${label}」を追加しました！</span>`;
+      attributeList.push({k:key,q:qText,l:label,i:imp});
+      $("new-question-key-input").value=$("new-question-text-input").value=$("new-question-label-input").value="";
+      $("new-question-importance-input").value="1.5";
+      loadAdminQuestions();
+    } else { $("new-question-status-message").innerHTML=`<span style="color:#fc5e5e">${res||"エラー"}</span>`; }
+  };
+
+  // 起動
+  init();
+
+})();
+
+</script>
+</body>
+</html>
